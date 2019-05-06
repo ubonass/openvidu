@@ -221,7 +221,7 @@ export class Stream implements EventDispatcher {
             if (this.hasVideo) {
                 this.videoActive = !!this.outboundStreamOpts.publisherProperties.publishVideo;
                 this.frameRate = this.outboundStreamOpts.publisherProperties.frameRate;
-                if (this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack) {
+                if (typeof MediaStreamTrack !== 'undefined' && this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack) {
                     this.typeOfVideo = 'CUSTOM';
                 } else {
                     this.typeOfVideo = this.isSendScreen() ? 'SCREEN' : 'CAMERA';
@@ -455,7 +455,7 @@ export class Stream implements EventDispatcher {
     disposeWebRtcPeer(): void {
         if (this.webRtcPeer) {
             const isSenderAndCustomTrack: boolean = !!this.outboundStreamOpts &&
-                this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack;
+            typeof MediaStreamTrack !== 'undefined' && this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack;
             this.webRtcPeer.dispose(isSenderAndCustomTrack);
         }
         if (this.speechEvent) {
@@ -693,7 +693,7 @@ export class Stream implements EventDispatcher {
 
                 let typeOfVideo = '';
                 if (this.isSendVideo()) {
-                    typeOfVideo = this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack ? 'CUSTOM' : (this.isSendScreen() ? 'SCREEN' : 'CAMERA');
+                    typeOfVideo = typeof MediaStreamTrack !== 'undefined' && this.outboundStreamOpts.publisherProperties.videoSource instanceof MediaStreamTrack ? 'CUSTOM' : (this.isSendScreen() ? 'SCREEN' : 'CAMERA');
                 }
 
                 this.session.openvidu.sendRequest('publishVideo', {
