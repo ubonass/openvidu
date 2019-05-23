@@ -155,8 +155,8 @@ public class SessionEventsHandler {
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_USER_PARAM, participant.getParticipantPublicId());
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_CREATEDAT_PARAM, participant.getCreatedAt());
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_METADATA_PARAM, participant.getFullMetadata());
-		//add by jeffrey...
-		result.addProperty("method", "joinRoom");
+		//add by jeffrey...为方便客户端找到当前操作是基于什么请求
+		result.addProperty(ProtocolElements.RESPONSE_OPERATION_METHOD, ProtocolElements.JOINROOM_METHOD);
 		result.add("value", resultArray);
 
 		rpcNotificationService.sendResponse(participant.getParticipantPrivateId(), transactionId, result);
@@ -205,6 +205,10 @@ public class SessionEventsHandler {
 		result.addProperty(ProtocolElements.PUBLISHVIDEO_SDPANSWER_PARAM, sdpAnswer);
 		result.addProperty(ProtocolElements.PUBLISHVIDEO_STREAMID_PARAM, streamId);
 		result.addProperty(ProtocolElements.PUBLISHVIDEO_CREATEDAT_PARAM, createdAt);
+		/*add by jeffrey,为客户端好找到当前返回是基于什么操作*/
+		result.addProperty(ProtocolElements.RESPONSE_OPERATION_METHOD,
+				ProtocolElements.PUBLISHVIDEO_METHOD);
+
 		rpcNotificationService.sendResponse(participant.getParticipantPrivateId(), transactionId, result);
 
 		JsonObject params = new JsonObject();
@@ -288,6 +292,9 @@ public class SessionEventsHandler {
 		}
 		JsonObject result = new JsonObject();
 		result.addProperty(ProtocolElements.RECEIVEVIDEO_SDPANSWER_PARAM, sdpAnswer);
+		//add by jeffrey 为方便客户端在response中容易知道当前是什么操作返回的
+		result.addProperty(ProtocolElements.RESPONSE_OPERATION_METHOD,
+				ProtocolElements.RECEIVEVIDEO_METHOD);
 		rpcNotificationService.sendResponse(participant.getParticipantPrivateId(), transactionId, result);
 
 		if (ProtocolElements.RECORDER_PARTICIPANT_PUBLICID.equals(participant.getParticipantPublicId())) {
