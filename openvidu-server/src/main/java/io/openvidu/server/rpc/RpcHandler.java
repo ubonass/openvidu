@@ -74,7 +74,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Override
     public void handleRequest(Transaction transaction, Request<JsonObject> request) throws Exception {
-
+        log.info("---WebSocket session #{} - Request: {}", request);
         String participantPrivateId = null;
         try {
             participantPrivateId = transaction.getSession().getSessionId();
@@ -83,11 +83,11 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             throw e;
         }
 
-        log.debug("WebSocket session #{} - Request: {}", participantPrivateId, request);
+        log.info("WebSocket session #{} - Request: {}", participantPrivateId, request);
 
         RpcConnection rpcConnection;
         if (ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
-            // Store new RpcConnection information if method 'joinRoom'
+            // Store new RpcConnection information if method 'joinRoom-joinPlatform'
             rpcConnection = notificationService.newRpcConnection(transaction, request);
         } else if (notificationService.getRpcConnection(participantPrivateId) == null) {
             // Throw exception if any method is called before 'joinRoom'
