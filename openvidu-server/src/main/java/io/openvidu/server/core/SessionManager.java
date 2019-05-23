@@ -70,7 +70,8 @@ public abstract class SessionManager {
 	protected TokenGenerator tokenGenerator;
 
 	public FormatChecker formatChecker = new FormatChecker();
-
+	/*用于存储用户唯一ID和websocket通信的唯一ID*/
+	protected ConcurrentMap<String, String> userIdAndPrivateId = new ConcurrentHashMap<>();
 	protected ConcurrentMap<String, Session> sessions = new ConcurrentHashMap<>();
 	protected ConcurrentMap<String, Session> sessionsNotActive = new ConcurrentHashMap<>();
 	protected ConcurrentMap<String, ConcurrentHashMap<String, Participant>> sessionidParticipantpublicidParticipant = new ConcurrentHashMap<>();

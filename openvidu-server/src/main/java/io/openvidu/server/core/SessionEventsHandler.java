@@ -155,6 +155,8 @@ public class SessionEventsHandler {
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_USER_PARAM, participant.getParticipantPublicId());
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_CREATEDAT_PARAM, participant.getCreatedAt());
 		result.addProperty(ProtocolElements.PARTICIPANTJOINED_METADATA_PARAM, participant.getFullMetadata());
+		//add by jeffrey...
+		result.addProperty("method", "joinRoom");
 		result.add("value", resultArray);
 
 		rpcNotificationService.sendResponse(participant.getParticipantPrivateId(), transactionId, result);

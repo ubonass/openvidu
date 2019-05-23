@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.*;
 import org.kurento.jsonrpc.DefaultJsonRpcHandler;
 import org.kurento.jsonrpc.Session;
 import org.kurento.jsonrpc.Transaction;
@@ -35,11 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import io.openvidu.client.OpenViduException;
 import io.openvidu.client.OpenViduException.Code;
@@ -74,7 +70,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Override
     public void handleRequest(Transaction transaction, Request<JsonObject> request) throws Exception {
-        log.info("---WebSocket session #{} - Request: {}", request);
+        //log.info("---WebSocket session #{} - Request: {}", request);
         String participantPrivateId = null;
         try {
             participantPrivateId = transaction.getSession().getSessionId();
@@ -113,6 +109,9 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
         transaction.startAsync();
 
         switch (request.getMethod()) {
+            case ProtocolElements.INVITED_METHOD:
+                invited(rpcConnection, request);
+                break;
             case ProtocolElements.JOINROOM_METHOD:
                 joinRoom(rpcConnection, request);
                 break;
@@ -166,6 +165,46 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
                 break;
         }
     }
+
+    /**
+     * 例子为邀请4个人通话
+     */
+    public void invited(RpcConnection rpcConnection, Request<JsonObject> request) {
+        /*{
+            "id":1,
+            "method":"invited",
+            "params":{
+                    "userId": "xxx",
+                    "session": "AAA",
+                    "type": “all”,
+                    "number": 4,
+                    "targets":[{"target_0":"dadasd","arget_1":"dadasd","arget_2":"dadasd","arget_3":"dadasd"}]
+
+            },
+            "jsonrpc":"2.0"
+        }
+        */
+        String userId = getStringParam(request, ProtocolElements.INVITED_USER_PARAM);
+        String sessionId = getStringParam(request, ProtocolElements.INVITED_ROOM_PARAM);
+        int number = getIntParam(request, ProtocolElements.INVITED_NUMBER_PARAM);
+        String targets = getStringParam(request, ProtocolElements.INVITED_TARGETS_PARAM);
+        String mediaType = getStringParam(request, ProtocolElements.INVITED_MEDIA_TYPE_PARAM);
+        /**
+         * 首先判断这个target id是否在userIdAndPrivateId集合当中有
+         * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间
+         */
+        if (number > 0) {
+            JsonArray targetArray =
+                    new JsonParser().parse(targets).getAsJsonArray();
+            for (int i= 0;i<targetArray.size();i++) {
+                JsonObject object = targetArray.get(i).getAsJsonObject();
+                String targetId =
+                        object.get("target_" + i).getAsString();
+                log.info("targetId : {}",targetId);
+            }
+        }
+    }
+
 
     public void joinRoom(RpcConnection rpcConnection, Request<JsonObject> request) {
 
