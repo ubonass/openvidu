@@ -319,12 +319,14 @@ public abstract class SessionManager {
 		* 如果不是InsecureParticipant
 		* */
 		if (!this.isInsecureParticipant(participanPrivatetId)) {
+			log.info("...this is not InsecureParticipant check token");
 			if (this.sessionidTokenTokenobj.get(sessionId) != null) {
 				return this.sessionidTokenTokenobj.get(sessionId).containsKey(token);
 			} else {
 				return false;
 			}
 		} else {
+			log.info("...this is InsecureParticipant check token");
 			this.sessionidParticipantpublicidParticipant.putIfAbsent(sessionId, new ConcurrentHashMap<>());
 			this.sessionidFinalUsers.putIfAbsent(sessionId, new ConcurrentHashMap<>());
 			if (this.openviduConfig.isRecordingModuleEnabled()) {

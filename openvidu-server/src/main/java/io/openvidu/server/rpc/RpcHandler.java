@@ -272,6 +272,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
         boolean generateRecorderParticipant = false;
 
         if (openviduConfig.isOpenViduSecret(secret)) {
+            log.info("start newInsecureParticipant...");
             sessionManager.newInsecureParticipant(participantPrivatetId);
             token = RandomStringGenerator.generateRandomChain();//重新生成token?
             if (recorder) {
