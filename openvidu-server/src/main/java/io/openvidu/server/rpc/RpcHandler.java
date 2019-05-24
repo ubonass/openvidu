@@ -285,7 +285,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             String clientMetadata = getStringParam(request, ProtocolElements.JOINROOM_METADATA_PARAM);
 
             if (sessionManager.formatChecker.isServerMetadataFormatCorrect(clientMetadata)) {
-
+                log.info("start consumeToken here");
                 Token tokenObj = sessionManager.consumeToken(sessionId, participantPrivatetId, token);
                 Participant participant;
 
