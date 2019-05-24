@@ -72,11 +72,38 @@ public abstract class SessionManager {
 	public FormatChecker formatChecker = new FormatChecker();
 	/*用于存储用户唯一ID和websocket通信的唯一ID*/
 	protected ConcurrentMap<String, String> userIdAndPrivateId = new ConcurrentHashMap<>();
+	/**
+	 * 每个房间对应一个Key（房间名称）,对应一个value（Session实例）
+	 */
 	protected ConcurrentMap<String, Session> sessions = new ConcurrentHashMap<>();
+	/**
+	 * 每个房间对应一个Key（房间名称）,对应一个value（Session实例）
+	 * 和sessions集合的区别是什么?
+	 */
 	protected ConcurrentMap<String, Session> sessionsNotActive = new ConcurrentHashMap<>();
-	protected ConcurrentMap<String, ConcurrentHashMap<String, Participant>> sessionidParticipantpublicidParticipant = new ConcurrentHashMap<>();
-	protected ConcurrentMap<String, ConcurrentHashMap<String, FinalUser>> sessionidFinalUsers = new ConcurrentHashMap<>();
-	protected ConcurrentMap<String, ConcurrentLinkedQueue<CDREventRecording>> sessionidAccumulatedRecordings = new ConcurrentHashMap<>();
+	/**
+	 * 每个房间对应一个Key（房间名称）
+	 * 同时用一个Value:ConcurrentHashMap<String, Participant>集合来管理该房间的Participant
+	 * Value这个集合的Key是什么?: websocket通信的publicId
+	 */
+	protected ConcurrentMap<String, ConcurrentHashMap<String, Participant>>
+			sessionidParticipantpublicidParticipant = new ConcurrentHashMap<>();
+	/**
+	 * 每个房间对应一个Key（房间名称）
+	 * 同时用一个ConcurrentHashMap<String, FinalUser>来管理FinalUser
+	 * 什么是FinalUser？
+	 * Value这个集合的Key是什么？
+	 *   在握手阶段会创建一个或使用老的HttpSession对应的值为:DB7CF7AF8D8DE17BE418C4DBDB45D6A3
+	 *   在加入房间的时候会将Participant以如下的算法处理
+	 *   	httpSession.getId().substring(0, Math.min(16, httpSession.getId().length()))
+	 * 	 	加入到ConcurrentHashMap<String, Participant>集合,
+	 * 	 其实这里Value这个集合的Key是可以理解成本次连接的唯一ID
+	 */
+	protected ConcurrentMap<String, ConcurrentHashMap<String, FinalUser>>
+			sessionidFinalUsers = new ConcurrentHashMap<>();
+
+	protected ConcurrentMap<String, ConcurrentLinkedQueue<CDREventRecording>>
+			sessionidAccumulatedRecordings = new ConcurrentHashMap<>();
 
 	protected ConcurrentMap<String, Boolean> insecureUsers = new ConcurrentHashMap<>();
 	public ConcurrentMap<String, ConcurrentHashMap<String, Token>> sessionidTokenTokenobj = new ConcurrentHashMap<>();
@@ -237,7 +264,12 @@ public abstract class SessionManager {
 	public MediaOptions generateMediaOptions(Request<JsonObject> request) {
 		return null;
 	}
-
+	/**
+	 * 表示刚创建的房间
+	 * @param sessionId
+	 * @param sessionProperties
+	 * @return
+	 */
 	public Session storeSessionNotActive(String sessionId, SessionProperties sessionProperties) {
 		Session sessionNotActive = new Session(sessionId, sessionProperties, openviduConfig, recordingManager);
 		this.sessionsNotActive.put(sessionId, sessionNotActive);
@@ -275,7 +307,17 @@ public abstract class SessionManager {
 		}
 	}
 
+	/**
+	 * session 是否有效
+	 * @param token
+	 * @param sessionId
+	 * @param participanPrivatetId
+	 * @return
+	 */
 	public boolean isTokenValidInSession(String token, String sessionId, String participanPrivatetId) {
+		/*
+		* 如果不是InsecureParticipant
+		* */
 		if (!this.isInsecureParticipant(participanPrivatetId)) {
 			if (this.sessionidTokenTokenobj.get(sessionId) != null) {
 				return this.sessionidTokenTokenobj.get(sessionId).containsKey(token);

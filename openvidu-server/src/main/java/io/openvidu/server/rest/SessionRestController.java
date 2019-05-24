@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.openvidu.java.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,13 +43,7 @@ import com.google.gson.JsonParser;
 
 import io.openvidu.client.OpenViduException;
 import io.openvidu.client.internal.ProtocolElements;
-import io.openvidu.java.client.MediaMode;
-import io.openvidu.java.client.OpenViduRole;
 import io.openvidu.java.client.Recording.OutputMode;
-import io.openvidu.java.client.RecordingLayout;
-import io.openvidu.java.client.RecordingMode;
-import io.openvidu.java.client.RecordingProperties;
-import io.openvidu.java.client.SessionProperties;
 import io.openvidu.server.config.OpenviduConfig;
 import io.openvidu.server.core.EndReason;
 import io.openvidu.server.core.Participant;
@@ -88,12 +83,12 @@ public class SessionRestController {
 		String customSessionId = null;
 
 		if (params != null) {
-
 			String mediaModeString;
 			String recordingModeString;
 			String defaultOutputModeString;
 			String defaultRecordingLayoutString;
 			String defaultCustomLayout;
+			String defaultSessionType;
 			try {
 				mediaModeString = (String) params.get("mediaMode");
 				recordingModeString = (String) params.get("recordingMode");
@@ -101,6 +96,7 @@ public class SessionRestController {
 				defaultRecordingLayoutString = (String) params.get("defaultRecordingLayout");
 				defaultCustomLayout = (String) params.get("defaultCustomLayout");
 				customSessionId = (String) params.get("customSessionId");
+				defaultSessionType = (String) params.get("sessionType");//add by jeffrey
 			} catch (ClassCastException e) {
 				return this.generateErrorResponse("Type error in some parameter", "/api/sessions",
 						HttpStatus.BAD_REQUEST);
@@ -133,6 +129,14 @@ public class SessionRestController {
 				} else {
 					builder = builder.mediaMode(MediaMode.ROUTED);
 				}
+                //add by jeffrey for sessionType support
+                if (defaultSessionType != null) {
+                    SessionType sessionType = SessionType.valueOf(defaultSessionType);
+                    builder = builder.sessionType(sessionType);
+                } else {
+                    builder = builder.sessionType(SessionType.CALL);
+                }
+
 				if (customSessionId != null && !customSessionId.isEmpty()) {
 					builder = builder.customSessionId(customSessionId);
 				}
@@ -160,7 +164,7 @@ public class SessionRestController {
 		}
 
 		Session sessionNotActive = sessionManager.storeSessionNotActive(sessionId, sessionProperties);
-		JsonObject responseJson = new JsonObject();
+		JsonObject responseJson = new JsonObject();//返回房间名称
 		responseJson.addProperty("id", sessionNotActive.getSessionId());
 		responseJson.addProperty("createdAt", sessionNotActive.getStartTime());
 

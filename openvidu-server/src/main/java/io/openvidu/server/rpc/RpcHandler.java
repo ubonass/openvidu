@@ -70,7 +70,6 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Override
     public void handleRequest(Transaction transaction, Request<JsonObject> request) throws Exception {
-        //log.info("---WebSocket session #{} - Request: {}", request);
         String participantPrivateId = null;
         try {
             participantPrivateId = transaction.getSession().getSessionId();
@@ -238,10 +237,14 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             // WebSocketSession. This is a new final user connecting to OpenVidu Server
             JsonObject json = new JsonObject();
             json.addProperty(sessionId, System.currentTimeMillis());
-            httpSession.setAttribute("openviduSessions", json);
+            httpSession.setAttribute("openviduSessions", json);//记录当前连接是否已经发过指令
         } else {
             // This final user has already been connected to an OpenVidu session in this
             // active WebSocketSession
+            /**
+             * 如果首次joinRooms -> essionManager.getSession(sessionId) 应该为null
+             *  sessionManager.getSessionNotActive(sessionId)
+             */
             if (sessions.has(sessionId)) {
                 if (sessionManager.getSession(sessionId) != null) {
                     // The previously existing final user is reconnecting to an OpenVidu session
@@ -270,7 +273,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
         if (openviduConfig.isOpenViduSecret(secret)) {
             sessionManager.newInsecureParticipant(participantPrivatetId);
-            token = RandomStringGenerator.generateRandomChain();
+            token = RandomStringGenerator.generateRandomChain();//重新生成token?
             if (recorder) {
                 generateRecorderParticipant = true;
             }
@@ -289,6 +292,8 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
                     participant = sessionManager.newRecorderParticipant(sessionId, participantPrivatetId, tokenObj,
                             clientMetadata);
                 } else {
+                    log.info("participant finalUserId {}",
+                            httpSession.getId().substring(0, Math.min(16, httpSession.getId().length())));
                     participant = sessionManager.newParticipant(sessionId, participantPrivatetId, tokenObj,
                             clientMetadata, location, platform,
                             httpSession.getId().substring(0, Math.min(16, httpSession.getId().length())));

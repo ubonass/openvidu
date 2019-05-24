@@ -63,7 +63,7 @@ public class Session implements SessionInterface {
 
 	public Session(String sessionId, SessionProperties sessionProperties, OpenviduConfig openviduConfig,
 			RecordingManager recordingManager) {
-		this.sessionId = sessionId;
+		this.sessionId = sessionId;//房间名称
 		this.startTime = System.currentTimeMillis();
 		this.sessionProperties = sessionProperties;
 		this.openviduConfig = openviduConfig;
