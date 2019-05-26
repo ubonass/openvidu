@@ -222,8 +222,46 @@ public class ProtocolElements {
 	"jsonrpc":"2.0"
 	}
 	*/
-	public static final String PARTICIPANTINVITED_USER_PARAM = "id";
+    /*
+        用户AAA发来的信息
+        {
+        "id":1,
+            "method":"invited",
+            "params":{
+                "userId": "AAA",
+                "session": "AAA",
+                "type": “all”,
+                "number": 4,
+                "targets":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
 
-	/*public static final String ONINVITED_METHOD = "onIceCandidate";
-	public static final String ONINVITED_PARAM = "endpointName";*/
+        },
+        "jsonrpc":"2.0"
+
+        发送消息到target_0
+         {
+        "id":1,
+            "method":"onInvited",
+            "params":{
+                "fromId": "AAA",
+                "session": "AAA",
+                "type": “all”,
+        },
+        "jsonrpc":"2.0"
+        //自身返回
+       {
+        "id":1,
+            "method":"invited",
+            "params":{
+                "number": 4,
+                "target_0": "online",
+                "target_1": "online",
+                "target_1": "offline",
+                "target_2": "offline",
+                "target_4": "offline",
+                "session": "AAA",
+                "type": “all”,
+                }
+        },
+        "jsonrpc":"2.0"
+    }*/
 }

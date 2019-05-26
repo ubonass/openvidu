@@ -71,7 +71,7 @@ public class InfoSocketConfig implements WebSocketConfigurer {
 			if (serverHttpRequest instanceof ServletServerHttpRequest) {
 				String userId = ((ServletServerHttpRequest) serverHttpRequest)
 						.getServletRequest().getParameter("userId");
-				logger.info("user " + userId + " 尝试连接.......");
+				logger.info("user " + userId + " attempting connection.......");
 				map.put("userId", userId);
 			}
 			return true;

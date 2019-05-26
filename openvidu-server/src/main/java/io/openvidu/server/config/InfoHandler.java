@@ -84,9 +84,9 @@ public class InfoHandler extends TextWebSocketHandler {
         log.info("Info websocket stablished...");
         Map<String, Object> attributes = session.getAttributes();
         log.info("user info:" + attributes);
-        for (String key : attributes.keySet()) {
+        /*for (String key : attributes.keySet()) {
             log.info("key:" + key + " and value:" + attributes.get(key));
-        }
+        }*/
         //this.sessions.put(session.getId(), session);
         this.sessions.put(attributes.get("userId").toString(), session);
     }
@@ -133,52 +133,97 @@ public class InfoHandler extends TextWebSocketHandler {
         response.addProperty("message", throwable.getMessage());
         session.sendMessage(new TextMessage(response.toString()));
     }
-
-
-
-    /**
-     * 例子为邀请4个人通话
-     */
-    private void invited(WebSocketSession session, JsonObject message) {
-        /*{
-            "id":1,
+    /*
+        用户AAA发来的信息
+        {
+        "id":1,
             "method":"invited",
             "params":{
-                    "userId": "xxx",
-                    "session": "AAA",
-                    "type": “all”,
-                    "number": 4,
-                    "targets":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
+                "userId": "AAA",
+                "session": "AAA",
+                "type": “all”,
+                "number": 4,
+                "targets":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
 
-            },
-            "jsonrpc":"2.0"
-        }*/
+        },
+        "jsonrpc":"2.0"
 
-        String params = message.get("params").getAsString();
-        JsonObject object = gson.fromJson(params, JsonObject.class);
-        log.info("object ==" + object.toString());
+        发送消息到target_0
+         {
+        "id":1,
+            "method":"onInvited",
+            "params":{
+                "fromId": "AAA",
+                "session": "AAA",
+                "type": “all”,
+        },
+        "jsonrpc":"2.0"
+        //自身返回
+       {
+        "id":1,
+            "method":"invited",
+            "params":{
+                "number": 4,
+                "target_0": "online",
+                "target_1": "online",
+                "target_1": "offline",
+                "target_2": "offline",
+                "target_4": "offline",
+                "session": "AAA",
+                "type": “all”,
+                }
+        },
+        "jsonrpc":"2.0"
+    }*/
+    private void invited(WebSocketSession session, JsonObject message) {
+        try {
+            String params = message.get("params").getAsString();
+            JsonObject object = gson.fromJson(params, JsonObject.class);
+            String userId = object.get(ProtocolElements.INVITED_USER_PARAM).getAsString();
+            String sessionId = object.get(ProtocolElements.INVITED_ROOM_PARAM).getAsString();
+            int number = Integer.valueOf(object.get(ProtocolElements.INVITED_NUMBER_PARAM).getAsString());
+            String targets = object.get(ProtocolElements.INVITED_TARGETS_PARAM).getAsString();
+            String mediaType = object.get(ProtocolElements.INVITED_MEDIA_TYPE_PARAM).getAsString();
+            JsonObject response = new JsonObject();
+            JsonObject responseParams = new JsonObject();
+            /** 首先判断这个target id是否在userIdAndPrivateId集合当中有
+             * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*/
+            if (number > 0) {
+                JsonArray targetArray =
+                        new JsonParser().parse(targets).getAsJsonArray();
+                for (int i = 0; i < targetArray.size(); i++) {
+                    JsonObject targetNofification = new JsonObject();
+                    JsonObject targetNofificationParams = new JsonObject();
 
-        /*String userId = getStringParam(request, ProtocolElements.INVITED_USER_PARAM);
-        String sessionId = getStringParam(request, ProtocolElements.INVITED_ROOM_PARAM);
-        int number = getIntParam(request, ProtocolElements.INVITED_NUMBER_PARAM);
-        String targets = getStringParam(request, ProtocolElements.INVITED_TARGETS_PARAM);
-        String mediaType = getStringParam(request, ProtocolElements.INVITED_MEDIA_TYPE_PARAM);
-        *//**
-         * 首先判断这个target id是否在userIdAndPrivateId集合当中有
-         * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*//*
-        if (number > 0) {
-            JsonArray targetArray =
-                    new JsonParser().parse(targets).getAsJsonArray();
-            for (int i = 0; i < targetArray.size(); i++) {
-                JsonObject object = targetArray.get(i).getAsJsonObject();
-                String targetId =
-                        object.get("target_" + i).getAsString();
-                log.info("targetId : {}", targetId);
+                    JsonObject target = targetArray.get(i).getAsJsonObject();
+                    String targetId = target.get("target_" + i).getAsString();
+                    log.info("targetId : {}", targetId);
+                    //判断targetId是否在sessions集合当中
+                    if (sessions.containsKey(targetId)) {
+                        WebSocketSession targetSession = sessions.get(targetId);
+                        targetNofification.addProperty("method", "onInvited");
+                        targetNofificationParams.addProperty("fromId",userId);
+                        targetNofificationParams.addProperty("session",sessionId);
+                        targetNofificationParams.addProperty("number",number);
+                        targetNofificationParams.addProperty("type",mediaType);
+                        targetNofification.addProperty("params",targetNofificationParams.toString());
+                        targetSession.sendMessage(new TextMessage(targetNofification.toString()));
+
+                        responseParams.addProperty("target_" + i, "online");
+                    } else {
+                        responseParams.addProperty("target_" + i, "offline");
+                    }
+                    responseParams.addProperty("session", sessionId);
+                }
             }
-        }*/
+            response.addProperty("params", responseParams.toString());
+            response.addProperty("number", number);
+            response.addProperty("method", ProtocolElements.INVITED_METHOD);
+            session.sendMessage(new TextMessage(response.toString()));
+        } catch (IOException e) {
+            //e.printStackTrace();
+            log.error("error......");
+        }
 
-        JsonObject response = new JsonObject();
-        response.addProperty("method", ProtocolElements.INVITED_METHOD);
-        response.addProperty("response", "success");
     }
 }
