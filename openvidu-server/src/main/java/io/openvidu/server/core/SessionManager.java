@@ -321,7 +321,7 @@ public abstract class SessionManager {
 		if (!this.isInsecureParticipant(participanPrivatetId)) {
 			log.info("...this is not InsecureParticipant check token");
 			if (this.sessionidTokenTokenobj.get(sessionId) != null) {
-				//在reset 方法,创建session的时候就以及插入了
+				//在reset /api/tokens中已经插入了
 				log.info("this is not InsecureParticipant check token {}",
 						this.sessionidTokenTokenobj.get(sessionId).containsKey(token));
 				return this.sessionidTokenTokenobj.get(sessionId).containsKey(token);
