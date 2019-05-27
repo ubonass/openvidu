@@ -10,6 +10,7 @@ import io.openvidu.client.internal.ProtocolElements;
 import org.kurento.jsonrpc.DefaultJsonRpcHandler;
 import org.kurento.jsonrpc.Session;
 import org.kurento.jsonrpc.Transaction;
+import org.kurento.jsonrpc.internal.ws.WebSocketServerSession;
 import org.kurento.jsonrpc.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
 
-    private static final Logger log = LoggerFactory.getLogger(RpcHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(VoipHandler.class);
     /**
      * 当用户发送joinCloud后会创建一个这样的Map
      */
@@ -165,10 +166,16 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
 
 
     @Override
-    public void afterConnectionEstablished(Session session) throws Exception {
-        super.afterConnectionEstablished(session);
-        String userId = (String) session.getAttributes().get("userId");
-        sessions.put(userId, session);
+    public void afterConnectionEstablished(Session rpcSession) throws Exception {
+        super.afterConnectionEstablished(rpcSession);
+        log.info("After connection established for WebSocket session: {},attributes={}",
+                rpcSession.getSessionId(), rpcSession.getAttributes());
+        if (rpcSession instanceof WebSocketServerSession) {
+            String userId =
+                    (String) rpcSession.getAttributes().get("userId");
+            log.info("afterConnectionEstablished userId:" + userId);
+            sessions.put(userId, rpcSession);
+        }
     }
 
     @Override

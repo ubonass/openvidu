@@ -43,7 +43,7 @@ public class HttpHandshakeInterceptor implements HandshakeInterceptor {
 			String userId = ((ServletServerHttpRequest) request)
 					.getServletRequest().getParameter("userId");//add by jeffrey
 			attributes.put("userId", userId);
-			log.info("user " + userId + " attempting connection.......");
+			log.info("user:" + userId + " attempting connection.......");
 			log.info("{} HttpSession {}", session.isNew() ? "New" : "Old", session.getId());
 		}
 		return true;
