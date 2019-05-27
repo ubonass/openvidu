@@ -179,18 +179,24 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                             .getAttributes()
                             .get("userId");
             log.info("afterConnectionEstablished userId:" + userId);
-            //sessions.put(userId, rpcSession);
-            log.info("afterConnectionEstablished userId:" + userId);
             sessions.put(userId, rpcSession);
         }
     }
 
     @Override
-    public void afterConnectionClosed(Session session, String status) throws Exception {
-        super.afterConnectionClosed(session, status);
-        String userId = (String) session.getAttributes().get("userId");
-        sessions.remove(userId);
+    public void afterConnectionClosed(Session rpcSession, String status) throws Exception {
+        super.afterConnectionClosed(rpcSession, status);
+        if (rpcSession instanceof WebSocketServerSession) {
+            String userId = (String) ((WebSocketServerSession) rpcSession)
+                    .getWebSocketSession()
+                    .getAttributes()
+                    .get("userId");
+            sessions.remove(userId);
+            log.info("afterConnectionClosed userId:" + userId);
+        }
     }
+
+
 
     public static String getStringParam(Request<JsonObject> request, String key) {
         if (request.getParams() == null || request.getParams().get(key) == null) {
