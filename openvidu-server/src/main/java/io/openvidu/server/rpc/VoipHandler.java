@@ -67,47 +67,50 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                 break;
         }
     }
-    /*
-        用户AAA发来的信息
-        typeOfMedia：[audio/media/video]
-        typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":voip}",如果是单人通话就不带session
-        {
-        "id":1,
-            "method":"invited",
-            "params":{
-                "userId": "AAA",
-                "typeOfSession": "{"type":room,"session":"AA"}",
-                "typeOfMedia": “all”,
-                "number": 4,
-                "targetUsers":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
+/*
+    用户AAA发来的信息
+    typeOfMedia：[audio/media/video]
+    typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":voip}",如果是单人通话就不带session
+    {
+    "id":1,
+        "method":"invited",
+        "params":{
+            "userId": "AAA",
+            "typeOfSession": "{"type":room,"session":"AA"}",
+            "typeOfMedia": “all”,
+            "number": 4,
+            "targets":[{"userId":"egrgreara"},{"userId":"sgsgdg"},{"userId":"gfhdhtrhr"},{"userId":"sfsdfdsfsdf"}]
 
+    },
+    "jsonrpc":"2.0"
+
+    发送消息到target_0
+    {
+        "method":"onInvited",
+        "params":{
+            "fromId": "AAA",
+            "typeOfSession": "{"type":room,"session":"AA"}",
+            "typeOfMedia": “all”,
         },
         "jsonrpc":"2.0"
-
-        发送消息到target_0
+    }
+    //自身返回
+    /*{  "result":
         {
-            "method":"onInvited",
-            "params":{
-                "fromId": "AAA",
-                "typeOfSession": "{"type":room,"session":"AA"}",
-                "typeOfMedia": “all”,
-            },
-            "jsonrpc":"2.0"
-        }
-        //自身返回
-        /*{  "result":
-            {
-                "invited"："OK"
-                "userId": "AAA",
-                "typeOfSession": "{"type":room,"session":"AA"}",
-                "typeOfMedia": “all”,
-                "number": 4,
-                "targetsState":[{"target_0":"online","target_1":"online","2":"online","target_3":"offline"}]
-            },
-            "id":1,
-            "jsonrpc":"2.0"
-        }
-         */
+            "invited"："OK"
+            "userId": "AAA",
+            "typeOfSession": "{"type":room,"session":"AA"}",
+            "typeOfMedia": “all”,
+            "number": 4,
+            "targets":[{"userId":"egrgreara,""state","online"},
+                                            {"userId":"sgsgdg",""state","online"},
+                                            {"userId":"gfhdhtrhr",""state","offline"},
+                                            {"userId":"sfsdfdsfsdf",""state","offline"}]
+        },
+        "id":1,
+        "jsonrpc":"2.0"
+    }
+     */
 
     private void keepLive(RpcConnection rpcConnection, Request<JsonObject> request) {
         JsonObject result = new JsonObject();
@@ -118,15 +121,15 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
     }
 
     private void invited(RpcConnection rpcConnection, Request<JsonObject> request) {
-
+        log.info("Params :" + request.getParams().toString());
         String userId = getStringParam(request, ProtocolElements.INVITED_USER_PARAM);
         int number = getIntParam(request, ProtocolElements.INVITED_NUMBER_PARAM);
-        String targetUsers = getStringParam(request, ProtocolElements.INVITED_TARGETUSERS_PARAM);
+        String targetUsers = getStringParam(request, ProtocolElements.INVITED_TARGETS_PARAM);
         String typeOfMedia = getStringParam(request, ProtocolElements.INVITED_TYPEMEDIA_PARAM);
         String typeOfSession = getStringParam(request, ProtocolElements.INVITED_TYPESESSION_PARAM);
 
         JsonObject result = new JsonObject();
-        JsonObject targetStateParams = new JsonObject();
+        JsonObject targetParams = new JsonObject();
         /** 首先判断这个target id是否在userIdAndPrivateId集合当中有
          * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*/
         if (number > 0) {
@@ -136,7 +139,7 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                 for (int i = 0; i < targetArray.size(); i++) {
                     JsonObject notifParams = new JsonObject();
                     JsonObject target = targetArray.get(i).getAsJsonObject();
-                    String targetId = target.get("target_" + i).getAsString();
+                    String targetId = target.get("userId").getAsString();
                     //判断targetId是否在sessions集合当中
                     boolean targetOnline = sessions.containsKey(targetId);
                     if (targetOnline) {
@@ -146,13 +149,13 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                         notifParams.addProperty("typeOfSession", typeOfSession);
                         targetSession.sendNotification("onInvited", notifParams);
                     }
-                    targetStateParams.addProperty("target_" + i,
-                            targetOnline ? "online" : "offline");
+                    targetParams.addProperty("userId", targetId);
+                    targetParams.addProperty("state", targetOnline ? "online" : "offline");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            result.addProperty("targetsState", String.valueOf(targetStateParams));
+            result.addProperty("targets", String.valueOf(targetParams));
         }
 
         result.addProperty("invited", "OK");
@@ -170,7 +173,7 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
         super.afterConnectionEstablished(rpcSession);
         if (rpcSession instanceof WebSocketServerSession) {
             log.info("After connection established for WebSocket session: {},attributes={}",
-                    rpcSession.getSessionId(),((WebSocketServerSession) rpcSession)
+                    rpcSession.getSessionId(), ((WebSocketServerSession) rpcSession)
                             .getWebSocketSession()
                             .getAttributes());
             String userId =
@@ -195,7 +198,6 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             log.info("afterConnectionClosed userId:" + userId);
         }
     }
-
 
 
     public static String getStringParam(Request<JsonObject> request, String key) {

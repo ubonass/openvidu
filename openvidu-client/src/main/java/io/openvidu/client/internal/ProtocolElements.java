@@ -193,14 +193,13 @@ public class ProtocolElements {
 	public static final String INVITED_METHOD = "invited";
 	public static final String INVITED_USER_PARAM = "userId";//from user id
 	public static final String INVITED_NUMBER_PARAM = "number"; //一共邀请几个
-	public static final String INVITED_TARGETUSERS_PARAM = "targetUsers";//目标集合
+	public static final String INVITED_TARGETS_PARAM = "targets";//目标集合
 	public static final String INVITED_TYPEMEDIA_PARAM = "typeOffMedia";//类型,是audio,video,all还是全部
 	public static final String INVITED_TYPESESSION_PARAM = "typeOffSession";//类型,是audio,video,all还是全部
-	/*
+/*
 	用户AAA发来的信息
 	typeOfMedia：[audio/media/video]
 	typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":voip}",如果是单人通话就不带session
-
 	{
 	"id":1,
 		"method":"invited",
@@ -209,7 +208,7 @@ public class ProtocolElements {
 			"typeOfSession": "{"type":room,"session":"AA"}",
 			"typeOfMedia": “all”,
 			"number": 4,
-			"targetUsers":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
+			"targets":[{"userId":"egrgreara"},{"userId":"sgsgdg"},{"userId":"gfhdhtrhr"},{"userId":"sfsdfdsfsdf"}]
 
 	},
 	"jsonrpc":"2.0"
@@ -227,12 +226,15 @@ public class ProtocolElements {
 	//自身返回
 	/*{  "result":
 		{
-			"invited"："success"
+			"invited"："OK"
 			"userId": "AAA",
 			"typeOfSession": "{"type":room,"session":"AA"}",
 			"typeOfMedia": “all”,
 			"number": 4,
-			"targetsState":[{"target_0":"online","target_1":"online","2":"online","target_3":"offline"}]
+			"targets":[{"userId":"egrgreara,""state","online"},
+						{"userId":"sgsgdg",""state","online"},
+						{"userId":"gfhdhtrhr",""state","offline"},
+						{"userId":"sfsdfdsfsdf",""state","offline"}]
 		},
 		"id":1,
 		"jsonrpc":"2.0"
