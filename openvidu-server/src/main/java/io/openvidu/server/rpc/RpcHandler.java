@@ -573,10 +573,6 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
         log.info("After connection established for WebSocket session: {},attributes={}",
                 rpcSession.getSessionId(), rpcSession.getAttributes());
         if (rpcSession instanceof WebSocketServerSession) {
-            String userId =
-                    (String) rpcSession.getAttributes().get("userId");
-            log.info("afterConnectionEstablished userId:" + userId);
-            //sessions.put(userId, rpcSession);
             InetAddress address;
             HttpHeaders headers = ((WebSocketServerSession) rpcSession).getWebSocketSession().getHandshakeHeaders();
             if (headers.containsKey("x-real-ip")) {

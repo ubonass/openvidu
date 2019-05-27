@@ -168,14 +168,21 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
     @Override
     public void afterConnectionEstablished(Session rpcSession) throws Exception {
         super.afterConnectionEstablished(rpcSession);
-        /*log.info("After connection established for WebSocket session: {},attributes={}",
-                rpcSession.getSessionId(), rpcSession.getAttributes());
         if (rpcSession instanceof WebSocketServerSession) {
+            log.info("After connection established for WebSocket session: {},attributes={}",
+                    rpcSession.getSessionId(),((WebSocketServerSession) rpcSession)
+                            .getWebSocketSession()
+                            .getAttributes());
             String userId =
-                    (String) rpcSession.getAttributes().get("userId");
+                    (String) ((WebSocketServerSession) rpcSession)
+                            .getWebSocketSession()
+                            .getAttributes()
+                            .get("userId");
+            log.info("afterConnectionEstablished userId:" + userId);
+            //sessions.put(userId, rpcSession);
             log.info("afterConnectionEstablished userId:" + userId);
             sessions.put(userId, rpcSession);
-        }*/
+        }
     }
 
     @Override
