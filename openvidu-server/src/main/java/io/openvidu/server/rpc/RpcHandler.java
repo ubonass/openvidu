@@ -268,7 +268,7 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
             return;
         }
         //modify by jeffrey
-        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, /*true*/ false);
+        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, true /*false*/);
         log.info("Participant {} has left session {}", participant.getParticipantPublicId(),
                 rpcConnection.getSessionId());
     }
