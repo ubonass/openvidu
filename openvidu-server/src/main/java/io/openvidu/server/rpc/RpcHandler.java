@@ -83,7 +83,7 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
         } else {
             String sessionId = rpcConnection.getSessionId();
             if (sessionId == null &&
-                    !ProtocolElements.JOINCLOUD_METHOD.equals(request.getMethod())) {
+                    !ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
                 log.warn(
                         "No session information found for participant with privateId {} " +
                                 "when trying to execute method '{}'. Method 'Session.connect()' " +
