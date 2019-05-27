@@ -194,8 +194,8 @@ public class ProtocolElements {
 	public static final String INVITED_USER_PARAM = "userId";//from user id
 	public static final String INVITED_NUMBER_PARAM = "number"; //一共邀请几个
 	public static final String INVITED_TARGETS_PARAM = "targets";//目标集合
-	public static final String INVITED_TYPEMEDIA_PARAM = "typeOffMedia";//类型,是audio,video,all还是全部
-	public static final String INVITED_TYPESESSION_PARAM = "typeOffSession";//类型,是audio,video,all还是全部
+	public static final String INVITED_TYPEMEDIA_PARAM = "typeOfMedia";//类型,是audio,video,all还是全部
+	public static final String INVITED_TYPESESSION_PARAM = "typeOfSession";//类型,是audio,video,all还是全部
 /*
 	用户AAA发来的信息
 	typeOfMedia：[audio/media/video]
