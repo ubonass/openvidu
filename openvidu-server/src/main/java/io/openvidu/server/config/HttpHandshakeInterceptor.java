@@ -34,7 +34,9 @@ public class HttpHandshakeInterceptor implements HandshakeInterceptor {
 	private static final Logger log = LoggerFactory.getLogger(HttpHandshakeInterceptor.class);
 
 	@Override
-	public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
+	public boolean beforeHandshake(ServerHttpRequest request,
+								   ServerHttpResponse response,
+								   WebSocketHandler wsHandler,
 			Map<String, Object> attributes) throws Exception {
 		if (request instanceof ServletServerHttpRequest) {
 			HttpSession session = ((ServletServerHttpRequest) request).getServletRequest().getSession();
