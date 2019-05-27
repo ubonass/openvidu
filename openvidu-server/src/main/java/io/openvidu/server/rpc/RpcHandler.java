@@ -50,7 +50,7 @@ import io.openvidu.server.utils.GeoLocation;
 import io.openvidu.server.utils.GeoLocationByIp;
 import io.openvidu.server.utils.RandomStringGenerator;
 
-public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
+public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/ {
 
     private static final Logger log = LoggerFactory.getLogger(RpcHandler.class);
 
@@ -68,49 +68,34 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     private ConcurrentMap<String, Boolean> webSocketEOFTransportError = new ConcurrentHashMap<>();
 
+
     @Override
     public void handleRequest(Transaction transaction, Request<JsonObject> request) throws Exception {
-        String participantPrivateId = null;
-        try {
-            participantPrivateId = transaction.getSession().getSessionId();
-        } catch (Throwable e) {
-            log.error("Error getting WebSocket session ID from transaction {}", transaction, e);
-            throw e;
-        }
-
-        log.info("WebSocket session #{} - Request: {}", participantPrivateId, request);
-
-        RpcConnection rpcConnection;
-        if (ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
-            // Store new RpcConnection information if method 'joinRoom-joinPlatform'
-            rpcConnection = notificationService.newRpcConnection(transaction, request);
-        } else if (notificationService.getRpcConnection(participantPrivateId) == null) {
-            // Throw exception if any method is called before 'joinRoom'
-            log.warn(
-                    "No connection found for participant with privateId {} when trying to execute method '{}'. Method 'Session.connect()' must be the first operation called in any session",
-                    participantPrivateId, request.getMethod());
+        super.handleRequest(transaction,request);
+        RpcConnection rpcConnection =
+                notificationService.getRpcConnection(transaction.getSession().getSessionId());
+        if (rpcConnection == null) {
             throw new OpenViduException(Code.TRANSPORT_ERROR_CODE,
-                    "No connection found for participant with privateId " + participantPrivateId
-                            + ". Method 'Session.connect()' must be the first operation called in any session");
+                    "No connection found for participant with privateId " +
+                            transaction.getSession().getSessionId()
+                            + ". Method 'Session.connect()' must be the first operation called " +
+                            "in any session");
+        } else {
+            String sessionId = rpcConnection.getSessionId();
+            if (sessionId == null &&
+                    !ProtocolElements.JOINCLOUD_METHOD.equals(request.getMethod())) {
+                log.warn(
+                        "No session information found for participant with privateId {} " +
+                                "when trying to execute method '{}'. Method 'Session.connect()' " +
+                                "must be the first operation called in any session",
+                        rpcConnection.getParticipantPrivateId(), request.getMethod());
+                return;
+                /*throw new OpenViduException(Code.TRANSPORT_ERROR_CODE,
+                        "No session information found for participant with privateId " + rpcConnection.getParticipantPrivateId()
+                                + ". Method 'Session.connect()' must be the first operation called in any session");*/
+            }
         }
-        rpcConnection = notificationService.addTransaction(transaction, request);
-
-        String sessionId = rpcConnection.getSessionId();
-        if (sessionId == null && !ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
-            log.warn(
-                    "No session information found for participant with privateId {} when trying to execute method '{}'. Method 'Session.connect()' must be the first operation called in any session",
-                    participantPrivateId, request.getMethod());
-            throw new OpenViduException(Code.TRANSPORT_ERROR_CODE,
-                    "No session information found for participant with privateId " + participantPrivateId
-                            + ". Method 'Session.connect()' must be the first operation called in any session");
-        }
-
-        transaction.startAsync();
-
         switch (request.getMethod()) {
-            /*case ProtocolElements.INVITED_METHOD:
-                invited(rpcConnection, request);
-                break;*/
             case ProtocolElements.JOINROOM_METHOD:
                 joinRoom(rpcConnection, request);
                 break;
@@ -282,8 +267,8 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
         } catch (OpenViduException e) {
             return;
         }
-
-        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, true);
+        //modify by jeffrey
+        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, /*true*/ false);
         log.info("Participant {} has left session {}", participant.getParticipantPublicId(),
                 rpcConnection.getSessionId());
     }
@@ -584,7 +569,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Override
     public void afterConnectionEstablished(Session rpcSession) throws Exception {
-
+        super.afterConnectionEstablished(rpcSession);
         log.info("After connection established for WebSocket session: {},attributes={}",
                 rpcSession.getSessionId(), rpcSession.getAttributes());
         if (rpcSession instanceof WebSocketServerSession) {
@@ -605,6 +590,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Override
     public void afterConnectionClosed(Session rpcSession, String status) throws Exception {
+        super.afterConnectionClosed(rpcSession,status);
         log.info("After connection closed for WebSocket session: {} - Status: {}", rpcSession.getSessionId(), status);
 
         String rpcSessionId = rpcSession.getSessionId();
@@ -664,38 +650,6 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
     @Override
     public List<String> allowedOrigins() {
         return Arrays.asList("*");
-    }
-
-    public static String getStringParam(Request<JsonObject> request, String key) {
-        if (request.getParams() == null || request.getParams().get(key) == null) {
-            throw new RuntimeException("Request element '" + key + "' is missing in method '" + request.getMethod()
-                    + "'. CHECK THAT 'openvidu-server' AND 'openvidu-browser' SHARE THE SAME VERSION NUMBER");
-        }
-        return request.getParams().get(key).getAsString();
-    }
-
-    public static int getIntParam(Request<JsonObject> request, String key) {
-        if (request.getParams() == null || request.getParams().get(key) == null) {
-            throw new RuntimeException("Request element '" + key + "' is missing in method '" + request.getMethod()
-                    + "'. CHECK THAT 'openvidu-server' AND 'openvidu-browser' SHARE THE SAME VERSION NUMBER");
-        }
-        return request.getParams().get(key).getAsInt();
-    }
-
-    public static boolean getBooleanParam(Request<JsonObject> request, String key) {
-        if (request.getParams() == null || request.getParams().get(key) == null) {
-            throw new RuntimeException("Request element '" + key + "' is missing in method '" + request.getMethod()
-                    + "'. CHECK THAT 'openvidu-server' AND 'openvidu-browser' SHARE THE SAME VERSION NUMBER");
-        }
-        return request.getParams().get(key).getAsBoolean();
-    }
-
-    public static JsonElement getParam(Request<JsonObject> request, String key) {
-        if (request.getParams() == null || request.getParams().get(key) == null) {
-            throw new RuntimeException("Request element '" + key + "' is missing in method '" + request.getMethod()
-                    + "'. CHECK THAT 'openvidu-server' AND 'openvidu-browser' SHARE THE SAME VERSION NUMBER");
-        }
-        return request.getParams().get(key);
     }
 
     private Participant sanityCheckOfSession(RpcConnection rpcConnection, String methodName) throws OpenViduException {

@@ -40,6 +40,10 @@ public class HttpHandshakeInterceptor implements HandshakeInterceptor {
 			HttpSession session = ((ServletServerHttpRequest) request).getServletRequest().getSession();
 			session.setMaxInactiveInterval(1800); // HttpSession will expire in 30 minutes
 			attributes.put("httpSession", session);
+			String userId = ((ServletServerHttpRequest) request)
+					.getServletRequest().getParameter("userId");//add by jeffrey
+			attributes.put("userId", userId);
+			log.info("user " + userId + " attempting connection.......");
 			log.info("{} HttpSession {}", session.isNew() ? "New" : "Old", session.getId());
 		}
 		return true;

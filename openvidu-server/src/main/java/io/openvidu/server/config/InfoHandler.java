@@ -40,7 +40,7 @@ public class InfoHandler extends TextWebSocketHandler {
 
     private static final Gson gson = new GsonBuilder().create();
 
-    Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     Semaphore semaphore = new Semaphore(1);
 
     public void sendInfo(String info) {
@@ -59,7 +59,7 @@ public class InfoHandler extends TextWebSocketHandler {
      * 自定义函数
      * 发送消息给指定的在线用户
      */
-    public void sendMessageToUser(String userId, TextMessage message) {
+    /*public void sendMessageToUser(String userId, TextMessage message) {
         try {
             if (sessions.containsKey(userId)) {
                 WebSocketSession session = sessions.get(userId);
@@ -69,7 +69,7 @@ public class InfoHandler extends TextWebSocketHandler {
             e.printStackTrace();
             log.error(e.getLocalizedMessage());
         }
-    }
+    }*/
 
     /**
      * modify by jeffrey for userId support
@@ -82,13 +82,13 @@ public class InfoHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Info websocket stablished...");
-        Map<String, Object> attributes = session.getAttributes();
+        this.sessions.put(session.getId(), session);
+        /*Map<String, Object> attributes = session.getAttributes();
         log.info("user info:" + attributes);
-        /*for (String key : attributes.keySet()) {
+        for (String key : attributes.keySet()) {
             log.info("key:" + key + " and value:" + attributes.get(key));
-        }*/
-        //this.sessions.put(session.getId(), session);
-        this.sessions.put(attributes.get("userId").toString(), session);
+        }
+        this.sessions.put(attributes.get("userId").toString(), session);*/
     }
 
     /**
@@ -101,9 +101,9 @@ public class InfoHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus close) throws Exception {
         log.info("Info websocket closed: " + close.getReason());
-        //this.sessions.remove(session.getId());
-        this.sessions.remove(session.getAttributes().get("userId"));
-        session.close();
+        this.sessions.remove(session.getId());
+        /*this.sessions.remove(session.getAttributes().get("userId"));
+        session.close();*/
     }
 
     @Override
@@ -111,7 +111,7 @@ public class InfoHandler extends TextWebSocketHandler {
             throws Exception {
         JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
         log.info("Message received: " + jsonMessage);
-        switch (jsonMessage.get("method").getAsString()) {
+        /*switch (jsonMessage.get("method").getAsString()) {
             case ProtocolElements.INVITED_METHOD:
                 try {
                     invited(session, jsonMessage);
@@ -121,10 +121,10 @@ public class InfoHandler extends TextWebSocketHandler {
                 break;
             default:
                 break;
-        }
+        }*/
     }
 
-    private void handleErrorResponse(Throwable throwable, WebSocketSession session, String responseId)
+    /*private void handleErrorResponse(Throwable throwable, WebSocketSession session, String responseId)
             throws IOException {
         log.error(throwable.getMessage(), throwable);
         JsonObject response = new JsonObject();
@@ -133,7 +133,7 @@ public class InfoHandler extends TextWebSocketHandler {
         response.addProperty("message", throwable.getMessage());
         session.sendMessage(new TextMessage(response.toString()));
     }
-    /*
+    *//*
         用户AAA发来的信息
         {
         "id":1,
@@ -174,7 +174,7 @@ public class InfoHandler extends TextWebSocketHandler {
                 }
         },
         "jsonrpc":"2.0"
-    }*/
+    }*//*
     private void invited(WebSocketSession session, JsonObject message) {
         try {
             String params = message.get("params").getAsString();
@@ -186,8 +186,8 @@ public class InfoHandler extends TextWebSocketHandler {
             String mediaType = object.get(ProtocolElements.INVITED_MEDIA_TYPE_PARAM).getAsString();
             JsonObject response = new JsonObject();
             JsonObject responseParams = new JsonObject();
-            /** 首先判断这个target id是否在userIdAndPrivateId集合当中有
-             * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*/
+            *//** 首先判断这个target id是否在userIdAndPrivateId集合当中有
+             * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*//*
             if (number > 0) {
                 JsonArray targetArray =
                         new JsonParser().parse(targets).getAsJsonArray();
@@ -225,5 +225,5 @@ public class InfoHandler extends TextWebSocketHandler {
             log.error("error......");
         }
 
-    }
+    }*/
 }

@@ -34,6 +34,7 @@ public class ProtocolElements {
 	public static final String SENDMESSAGE_ROOM_METHOD = "sendMessage";
 	public static final String SENDMESSAGE_MESSAGE_PARAM = "message";
 
+	public static final String JOINCLOUD_METHOD = "joinCloud";
 
 	public static final String LEAVEROOM_METHOD = "leaveRoom";
 
@@ -191,77 +192,50 @@ public class ProtocolElements {
 	 */
 	public static final String INVITED_METHOD = "invited";
 	public static final String INVITED_USER_PARAM = "userId";//from user id
-	public static final String INVITED_ROOM_PARAM = "session"; //房间号
 	public static final String INVITED_NUMBER_PARAM = "number"; //一共邀请几个
-	public static final String INVITED_TARGETS_PARAM = "targets";//目标集合
-	public static final String INVITED_MEDIA_TYPE_PARAM = "type";//类型,是audio,video,all还是全部
-	/**
-	 * 邀请4个人进行通话,
-	 */
-	/*{
-		"id":1,
+	public static final String INVITED_TARGETUSERS_PARAM = "targetUsers";//目标集合
+	public static final String INVITED_TYPEMEDIA_PARAM = "typeOffMedia";//类型,是audio,video,all还是全部
+	public static final String INVITED_TYPESESSION_PARAM = "typeOffSession";//类型,是audio,video,all还是全部
+	/*
+	用户AAA发来的信息
+	typeOfMedia：[audio/media/video]
+	typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":voip}",如果是单人通话就不带session
+
+	{
+	"id":1,
 		"method":"invited",
 		"params":{
-				"userId": "xxx",
-				"session": "AAA",
-				"type": “all”,
-				"number": 4,
-				"targets":[{"target_0":"dadasd","arget_1":"dadasd","arget_2":"dadasd","arget_3":"dadasd"}]
+			"userId": "AAA",
+			"typeOfSession": "{"type":room,"session":"AA"}",
+			"typeOfMedia": “all”,
+			"number": 4,
+			"targetUsers":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
 
+	},
+	"jsonrpc":"2.0"
+
+	发送消息到target_0
+	{
+		"method":"onInvited",
+		"params":{
+			"fromId": "AAA",
+			"typeOfSession": "{"type":room,"session":"AA"}",
+			"typeOfMedia": “all”,
 		},
 		"jsonrpc":"2.0"
 	}
-
-	{"id":1,"result":{
-		"id":"otgo5adsru9rgrt7",
-		"value":[
-			{"id":"vxmyimm111nzqk2n","metadata":"","streams":[{"id":"vxmyimm111nzqk2n_CAMERA_OVWOU","hasAudio":true,"hasVideo":true,"videoActive":true,"audioActive":true,"typeOfVideo":"CAMERA","frameRate":-1,"videoDimensions":"{\"width\":640,\"height\":480}","filter":{}}]},
-			{"id":"1hhnsphhvyt7smhu","metadata":"","streams":[{"id":"1hhnsphhvyt7smhu_CAMERA_TVXKC","hasAudio":true,"hasVideo":true,"videoActive":true,"audioActive":true,"typeOfVideo":"CAMERA","frameRate":-1,"videoDimensions":"{\"width\":640,\"height\":480}","filter":{}}]}],
-		"sessionId":"1q3sbm0ghmd07qpio4slj1v2l5"
-	},
-	"jsonrpc":"2.0"
+	//自身返回
+	/*{  "result":
+		{
+			"invited"："success"
+			"userId": "AAA",
+			"typeOfSession": "{"type":room,"session":"AA"}",
+			"typeOfMedia": “all”,
+			"number": 4,
+			"targetsState":[{"target_0":"online","target_1":"online","2":"online","target_3":"offline"}]
+		},
+		"id":1,
+		"jsonrpc":"2.0"
 	}
-	*/
-    /*
-        用户AAA发来的信息
-        {
-        "id":1,
-            "method":"invited",
-            "params":{
-                "userId": "AAA",
-                "session": "AAA",
-                "type": “all”,
-                "number": 4,
-                "targets":[{"target_0":"dadasd","target_1":"dadasd","2":"target_2","target_3":"dadasd"}]
-
-        },
-        "jsonrpc":"2.0"
-
-        发送消息到target_0
-         {
-        "id":1,
-            "method":"onInvited",
-            "params":{
-                "fromId": "AAA",
-                "session": "AAA",
-                "type": “all”,
-        },
-        "jsonrpc":"2.0"
-        //自身返回
-       {
-        "id":1,
-            "method":"invited",
-            "params":{
-                "number": 4,
-                "target_0": "online",
-                "target_1": "online",
-                "target_1": "offline",
-                "target_2": "offline",
-                "target_4": "offline",
-                "session": "AAA",
-                "type": “all”,
-                }
-        },
-        "jsonrpc":"2.0"
-    }*/
+	 */
 }
