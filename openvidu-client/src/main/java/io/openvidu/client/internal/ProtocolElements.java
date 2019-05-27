@@ -34,7 +34,7 @@ public class ProtocolElements {
 	public static final String SENDMESSAGE_ROOM_METHOD = "sendMessage";
 	public static final String SENDMESSAGE_MESSAGE_PARAM = "message";
 
-	public static final String JOINCLOUD_METHOD = "joinCloud";
+	public static final String KEEPLIVE_METHOD = "keepLive";
 
 	public static final String LEAVEROOM_METHOD = "leaveRoom";
 

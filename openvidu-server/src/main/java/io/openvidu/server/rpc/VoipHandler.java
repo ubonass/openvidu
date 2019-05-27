@@ -38,8 +38,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                 getParticipantPrivateIdByTransaction(transaction);
         log.info("WebSocket session #{} - Request: {}", participantPrivateId, request);
         RpcConnection rpcConnection;
-        if (ProtocolElements.JOINCLOUD_METHOD.equals(request.getMethod())) {
-            // Store new RpcConnection information if method 'joinCloud'
+        if (ProtocolElements.KEEPLIVE_METHOD.equals(request.getMethod())) {
+            // Store new RpcConnection information if method 'keepLive'
             rpcConnection = notificationService.newRpcConnection(transaction, request);
         } else if (notificationService.getRpcConnection(participantPrivateId) == null) {
             // Throw exception if any method is called before 'joinCloud'
@@ -56,8 +56,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
         transaction.startAsync();
 
         switch (request.getMethod()) {
-            case ProtocolElements.JOINCLOUD_METHOD:
-                joinCloud(rpcConnection, request);
+            case ProtocolElements.KEEPLIVE_METHOD:
+                keepLive(rpcConnection, request);
                 break;
             case ProtocolElements.INVITED_METHOD:
                 invited(rpcConnection, request);
@@ -109,9 +109,9 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
         }
          */
 
-    private void joinCloud(RpcConnection rpcConnection, Request<JsonObject> request) {
+    private void keepLive(RpcConnection rpcConnection, Request<JsonObject> request) {
         JsonObject result = new JsonObject();
-        result.addProperty(ProtocolElements.JOINCLOUD_METHOD, "OK");
+        result.addProperty(ProtocolElements.KEEPLIVE_METHOD, "OK");
         notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
                 request.getId(), result);
 
