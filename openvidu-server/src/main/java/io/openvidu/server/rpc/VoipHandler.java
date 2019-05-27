@@ -129,13 +129,14 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
         String typeOfSession = getStringParam(request, ProtocolElements.INVITED_TYPESESSION_PARAM);
 
         JsonObject result = new JsonObject();
-        JsonObject targetParams = new JsonObject();
+        JsonArray resultTargetArray = new JsonArray();
         /** 首先判断这个target id是否在userIdAndPrivateId集合当中有
          * 如果没有说明不在线需要返回,如果有则向目标发起通知,通知其加入房间*/
         if (number > 0) {
             try {
                 JsonArray targetArray =
                         new JsonParser().parse(targetUsers).getAsJsonArray();
+                log.info("targetArray size:" + targetArray.size());
                 for (int i = 0; i < targetArray.size(); i++) {
                     JsonObject notifParams = new JsonObject();
                     JsonObject target = targetArray.get(i).getAsJsonObject();
@@ -148,14 +149,18 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                         notifParams.addProperty("typeOfMedia", typeOfMedia);
                         notifParams.addProperty("typeOfSession", typeOfSession);
                         targetSession.sendNotification("onInvited", notifParams);
+
                     }
-                    targetParams.addProperty("userId", targetId);
-                    targetParams.addProperty("state", targetOnline ? "online" : "offline");
+                    //回復客戶端端
+                    JsonObject object = new JsonObject();
+                    object.addProperty("userId", targetId);
+                    object.addProperty("state", targetOnline ? "online" : "offline");
+                    resultTargetArray.add(object);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            result.addProperty("targets", String.valueOf(targetParams));
+            result.addProperty("targets", String.valueOf(resultTargetArray));
         }
 
         result.addProperty("invited", "OK");
