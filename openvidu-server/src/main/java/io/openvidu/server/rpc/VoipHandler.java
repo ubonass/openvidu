@@ -153,6 +153,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                         notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, fromId);
                         notifParams.addProperty(ProtocolElements.ONINVITED_TARGETUSER_PARAM, targetId);
                         notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_TYPEEVENT_PARAM,
+                                ProtocolElements.ONINVITED_EVENT_CALL);
                         if (session != null)
                             notifParams.addProperty(ProtocolElements.ONINVITED_SESSION_PARAM, session);
                         targetSession.sendNotification(ProtocolElements.ONINVITED_METHOD, notifParams);
