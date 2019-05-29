@@ -184,11 +184,13 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
     private void onInvited(RpcConnection rpcConnection, Request<JsonObject> request) {
         String targetId = getStringParam(request, ProtocolElements.ONINVITED_TARGETUSER_PARAM);//目标接收者的ID
         String fromId = getStringParam(request, ProtocolElements.ONINVITED_FROMUSER_PARAM);//发送者的ID
-        String typeOfMedia = getStringParam(request, ProtocolElements.ONINVITED_TYPEMEDIA_PARAM);
         String event = getStringParam(request, ProtocolElements.ONINVITED_TYPEEVENT_PARAM);
+        String typeOfMedia = null;
         String session = null;
         if (request.getParams().has(ProtocolElements.ONINVITED_SESSION_PARAM))
             session = getStringParam(request, ProtocolElements.ONINVITED_SESSION_PARAM);
+        if (request.getParams().has(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM))
+            typeOfMedia = getStringParam(request, ProtocolElements.ONINVITED_TYPEMEDIA_PARAM);
         /**
          * 判断目标用户是否存在
          */
@@ -197,7 +199,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             JsonObject notifParams = new JsonObject();
             notifParams.addProperty(ProtocolElements.ONINVITED_TARGETUSER_PARAM, targetId);
             notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, fromId);
-            notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
+            if (typeOfMedia != null)
+                notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
             if (session != null)
                 notifParams.addProperty(ProtocolElements.ONINVITED_SESSION_PARAM, session);
             notifParams.addProperty(ProtocolElements.ONINVITED_TYPEEVENT_PARAM, event);
