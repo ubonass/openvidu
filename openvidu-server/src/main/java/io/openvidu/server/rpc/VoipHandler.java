@@ -62,8 +62,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             case ProtocolElements.INVITED_METHOD:
                 invited(rpcConnection, request);
                 break;
-            case ProtocolElements.INVITED_ANSWER_METHOD:
-                invitedAnswer(rpcConnection, request);
+            case ProtocolElements.ONINVITED_METHOD:
+                onInvited(rpcConnection, request);
                 break;
             default:
                 //log.error("Unrecognized request {}", request);
@@ -125,11 +125,13 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     private void invited(RpcConnection rpcConnection, Request<JsonObject> request) {
         log.info("Params :" + request.getParams().toString());
-        String userId = getStringParam(request, ProtocolElements.INVITED_USER_PARAM);
+        String fromId = getStringParam(request, ProtocolElements.INVITED_USER_PARAM);
         int number = getIntParam(request, ProtocolElements.INVITED_NUMBER_PARAM);
         String targetUsers = getStringParam(request, ProtocolElements.INVITED_TARGETS_PARAM);
         String typeOfMedia = getStringParam(request, ProtocolElements.INVITED_TYPEMEDIA_PARAM);
-        String typeOfSession = getStringParam(request, ProtocolElements.INVITED_TYPESESSION_PARAM);
+        String session = null;
+        if (request.getParams().has(ProtocolElements.INVITED_SESSION_PARAM))
+            session = getStringParam(request, ProtocolElements.INVITED_SESSION_PARAM);
 
         JsonObject result = new JsonObject();
         JsonArray resultTargetArray = new JsonArray();
@@ -147,11 +149,12 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                     //判断targetId是否在sessions集合当中
                     boolean targetOnline = sessions.containsKey(targetId);
                     if (targetOnline) {
-
                         Session targetSession = sessions.get(targetId);
-                        notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, userId);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, fromId);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_TARGETUSER_PARAM, targetId);
                         notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
-                        notifParams.addProperty(ProtocolElements.ONINVITED_TYPESESSION_PARAM, typeOfSession);
+                        if (session != null)
+                            notifParams.addProperty(ProtocolElements.ONINVITED_SESSION_PARAM, session);
                         targetSession.sendNotification(ProtocolElements.ONINVITED_METHOD, notifParams);
                     }
                     //回復客戶端端
@@ -166,17 +169,45 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             result.addProperty(ProtocolElements.INVITED_TARGETS_PARAM, String.valueOf(resultTargetArray));
         }
 
-
         result.addProperty(ProtocolElements.INVITED_METHOD, "OK");
-        result.addProperty(ProtocolElements.INVITED_USER_PARAM, userId);
+        result.addProperty(ProtocolElements.INVITED_USER_PARAM, fromId);
         result.addProperty(ProtocolElements.INVITED_NUMBER_PARAM, number);
-        result.addProperty(ProtocolElements.INVITED_TYPESESSION_PARAM, typeOfSession);
+        if (session != null)
+            result.addProperty(ProtocolElements.INVITED_SESSION_PARAM, session);
         result.addProperty(ProtocolElements.INVITED_TYPEMEDIA_PARAM, typeOfMedia);
-        notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
-                request.getId(), result);
+        /*notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
+                request.getId(), result);*/
     }
 
-    private void invitedAnswer(RpcConnection rpcConnection, Request<JsonObject> request) {
+    private void onInvited(RpcConnection rpcConnection, Request<JsonObject> request) {
+        String targetId = getStringParam(request, ProtocolElements.ONINVITED_TARGETUSER_PARAM);//目标接收者的ID
+        String fromId = getStringParam(request, ProtocolElements.ONINVITED_FROMUSER_PARAM);//发送者的ID
+        String typeOfMedia = getStringParam(request, ProtocolElements.ONINVITED_TYPEMEDIA_PARAM);
+        String event = getStringParam(request, ProtocolElements.ONINVITED_TYPEEVENT_PARAM);
+        String session = null;
+        if (request.getParams().has(ProtocolElements.ONINVITED_SESSION_PARAM))
+            session = getStringParam(request, ProtocolElements.ONINVITED_SESSION_PARAM);
+        /**
+         * 判断目标用户是否存在
+         */
+        if (sessions.containsKey(targetId)) {
+            Session targetSession = sessions.get(targetId);
+            JsonObject notifParams = new JsonObject();
+            notifParams.addProperty(ProtocolElements.ONINVITED_TARGETUSER_PARAM, targetId);
+            notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, fromId);
+            notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
+            if (session != null)
+                notifParams.addProperty(ProtocolElements.ONINVITED_SESSION_PARAM, session);
+            notifParams.addProperty(ProtocolElements.ONINVITED_TYPEEVENT_PARAM, event);
+            try {
+                targetSession.sendNotification(ProtocolElements.ONINVITED_METHOD, notifParams);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*private void invitedAnswer(RpcConnection rpcConnection, Request<JsonObject> request) {
         String userId = getStringParam(request, ProtocolElements.INVITED_ANSWER_USER_PARAM);
         String fromId = getStringParam(request, ProtocolElements.INVITED_ANSWER_FROMUSER_PARAM);
         String typeOfMedia = getStringParam(request, ProtocolElements.INVITED_ANSWER_TYPEMEDIA_PARAM);
@@ -194,7 +225,7 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
 
     @Override

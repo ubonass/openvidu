@@ -188,27 +188,38 @@ public class ProtocolElements {
 
 	public static final String RECORDER_PARTICIPANT_PUBLICID = "RECORDER";
 	/**
-	 * 邀请
+	 * A用户发送邀请,消息打包到InvitedInfo
 	 */
 	public static final String INVITED_METHOD = "invited";
 	public static final String INVITED_USER_PARAM = "userId";//from user id
 	public static final String INVITED_NUMBER_PARAM = "number"; //一共邀请几个
 	public static final String INVITED_TARGETS_PARAM = "targets";//目标集合
 	public static final String INVITED_TYPEMEDIA_PARAM = "typeOfMedia";//类型,是audio,video,all还是全部
-	public static final String INVITED_TYPESESSION_PARAM = "typeOfSession";
+	public static final String INVITED_SESSION_PARAM = "session";//是否使用房间
 
+	/**
+	 * 服务器收到A的请求后发送通知到指定用户
+	 * 消息封装到OnInvitedInfo
+	 */
 	public static final String ONINVITED_METHOD = "onInvited";
 	public static final String ONINVITED_FROMUSER_PARAM = "fromId";//from user id
+	public static final String ONINVITED_TARGETUSER_PARAM = "targetId";//接收者的ID
 	public static final String ONINVITED_TYPEMEDIA_PARAM = "typeOfMedia";//类型,是audio,video,all还是全部
-	public static final String ONINVITED_TYPESESSION_PARAM = "typeOfSession";//类型,是audio,video,all还是全部
-
-
-	public static final String INVITED_ANSWER_METHOD = "invitedAnswer";
-	public static final String INVITED_ANSWER_FROMUSER_PARAM = "fromId";
-	public static final String INVITED_ANSWER_USER_PARAM = "userId";
-	public static final String INVITED_ANSWER_TYPEMEDIA_PARAM = "typeOfMedia";
-	public static final String INVITED_ANSWER_TYPEANSWER_PARAM = "answerType";
-
+	public static final String ONINVITED_SESSION_PARAM = "session";//类型,是audio,video,all还是全部
+	public static final String ONINVITED_TYPEEVENT_PARAM = "event";
+	public static final String ONINVITED_EVENT_CALL = "call";
+	public static final String ONINVITED_EVENT_ACCEPT= "accept";
+	public static final String ONINVITED_EVENT_REFUSE = "refuse";
+	public static final String ONINVITED_EVENT_HANGUP = "hangup";
+	public static final String ONINVITED_EVENT_BUSY = "busy";
+	/**
+	 * B用户想服务器返回信息
+	 */
+    /*public static final String INVITED_ANSWER_METHOD = "invitedAnswer";
+    public static final String INVITED_ANSWER_FROMUSER_PARAM = "fromId";
+    public static final String INVITED_ANSWER_USER_PARAM = "userId";
+    public static final String INVITED_ANSWER_TYPEMEDIA_PARAM = "typeOfMedia";
+    public static final String INVITED_ANSWER_TYPEANSWER_PARAM = "answerType";*/
 /*
 	用户AAA发来的信息
 	typeOfMedia：[audio/media/video]
@@ -223,9 +234,9 @@ public class ProtocolElements {
 			"number": 4,
 			"targets":[{"userId":"egrgreara"},{"userId":"sgsgdg"},{"userId":"gfhdhtrhr"},{"userId":"sfsdfdsfsdf"}]
 
-			},
+	},
 	"jsonrpc":"2.0"
-	}
+
 	发送消息到target_0
 	{
 		"method":"onInvited",
@@ -233,10 +244,11 @@ public class ProtocolElements {
 			"fromId": "AAA",
 			"typeOfSession": "{"type":room,"session":"AA"}",
 			"typeOfMedia": “all”,
+			"event":"call,accept,refuse,hangup,busy"
 		},
 		"jsonrpc":"2.0"
 	}
-	//自身返回
+	//自身返回不需要了
 	/*{  "result":
 		{
 			"invited"："OK"
@@ -252,18 +264,17 @@ public class ProtocolElements {
 		"id":1,
 		"jsonrpc":"2.0"
 	}
-	//invitedAnswer
+    //onInvited 回复
 	{
 	"id":1,
-		"method":"invitedAnswer",
+		"method":"onInvited",
 		"params":{
 			"fromId":"邀请发起者ID"
 			"userId": "回复者的userId",
-			"typeOfMedia": “all”,(如果是拒绝的话则忽略)
-			"answerType": {"accept":"accept/or refuse","reason":"busy"}
+			"typeOfMedia": “all”,指定媒体类型
+			"event":"call,accept,refuse,hangup,busy"
 			},
 	"jsonrpc":"2.0"
 	}
-
 	 */
 }
