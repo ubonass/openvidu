@@ -62,6 +62,9 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             case ProtocolElements.INVITED_METHOD:
                 invited(rpcConnection, request);
                 break;
+            case ProtocolElements.INVITED_ANSWER_METHOD:
+                invitedAnswer(rpcConnection, request);
+                break;
             default:
                 //log.error("Unrecognized request {}", request);
                 break;
@@ -83,7 +86,7 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     },
     "jsonrpc":"2.0"
-
+    //如果用户都在线需要等待在线用户的回复
     发送消息到target_0
     {
         "method":"onInvited",
@@ -94,7 +97,7 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
         },
         "jsonrpc":"2.0"
     }
-    //自身返回
+    //自身应该不返回,等待客户返回
     /*{  "result":
         {
             "invited"："OK"
@@ -144,12 +147,12 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                     //判断targetId是否在sessions集合当中
                     boolean targetOnline = sessions.containsKey(targetId);
                     if (targetOnline) {
-                        Session targetSession = sessions.get(targetId);
-                        notifParams.addProperty("fromId", userId);
-                        notifParams.addProperty("typeOfMedia", typeOfMedia);
-                        notifParams.addProperty("typeOfSession", typeOfSession);
-                        targetSession.sendNotification("onInvited", notifParams);
 
+                        Session targetSession = sessions.get(targetId);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_FROMUSER_PARAM, userId);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_TYPEMEDIA_PARAM, typeOfMedia);
+                        notifParams.addProperty(ProtocolElements.ONINVITED_TYPESESSION_PARAM, typeOfSession);
+                        targetSession.sendNotification(ProtocolElements.ONINVITED_METHOD, notifParams);
                     }
                     //回復客戶端端
                     JsonObject object = new JsonObject();
@@ -160,16 +163,37 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            result.addProperty("targets", String.valueOf(resultTargetArray));
+            result.addProperty(ProtocolElements.INVITED_TARGETS_PARAM, String.valueOf(resultTargetArray));
         }
 
-        result.addProperty("invited", "OK");
-        result.addProperty("userId", userId);
-        result.addProperty("number", number);
-        result.addProperty("typeOfSession", typeOfSession);
-        result.addProperty("typeOfMedia", typeOfMedia);
+
+        result.addProperty(ProtocolElements.INVITED_METHOD, "OK");
+        result.addProperty(ProtocolElements.INVITED_USER_PARAM, userId);
+        result.addProperty(ProtocolElements.INVITED_NUMBER_PARAM, number);
+        result.addProperty(ProtocolElements.INVITED_TYPESESSION_PARAM, typeOfSession);
+        result.addProperty(ProtocolElements.INVITED_TYPEMEDIA_PARAM, typeOfMedia);
         notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
                 request.getId(), result);
+    }
+
+    private void invitedAnswer(RpcConnection rpcConnection, Request<JsonObject> request) {
+        String userId = getStringParam(request, ProtocolElements.INVITED_ANSWER_USER_PARAM);
+        String fromId = getStringParam(request, ProtocolElements.INVITED_ANSWER_FROMUSER_PARAM);
+        String typeOfMedia = getStringParam(request, ProtocolElements.INVITED_ANSWER_TYPEMEDIA_PARAM);
+        String typeAnswer = getStringParam(request, ProtocolElements.INVITED_ANSWER_TYPEANSWER_PARAM);
+        JsonObject notifParams = new JsonObject();
+        if (sessions.containsKey(fromId)) {
+            Session targetSession = sessions.get(fromId);
+            notifParams.addProperty(ProtocolElements.INVITED_ANSWER_USER_PARAM, userId);
+            notifParams.addProperty(ProtocolElements.INVITED_ANSWER_FROMUSER_PARAM, fromId);
+            notifParams.addProperty(ProtocolElements.INVITED_ANSWER_TYPEMEDIA_PARAM, typeOfMedia);
+            notifParams.addProperty(ProtocolElements.INVITED_ANSWER_TYPEANSWER_PARAM, typeAnswer);
+            try {
+                targetSession.sendNotification(ProtocolElements.INVITED_ANSWER_METHOD, notifParams);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 

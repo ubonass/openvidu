@@ -195,11 +195,24 @@ public class ProtocolElements {
 	public static final String INVITED_NUMBER_PARAM = "number"; //一共邀请几个
 	public static final String INVITED_TARGETS_PARAM = "targets";//目标集合
 	public static final String INVITED_TYPEMEDIA_PARAM = "typeOfMedia";//类型,是audio,video,all还是全部
-	public static final String INVITED_TYPESESSION_PARAM = "typeOfSession";//类型,是audio,video,all还是全部
+	public static final String INVITED_TYPESESSION_PARAM = "typeOfSession";
+
+	public static final String ONINVITED_METHOD = "onInvited";
+	public static final String ONINVITED_FROMUSER_PARAM = "fromId";//from user id
+	public static final String ONINVITED_TYPEMEDIA_PARAM = "typeOfMedia";//类型,是audio,video,all还是全部
+	public static final String ONINVITED_TYPESESSION_PARAM = "typeOfSession";//类型,是audio,video,all还是全部
+
+
+	public static final String INVITED_ANSWER_METHOD = "invitedAnswer";
+	public static final String INVITED_ANSWER_FROMUSER_PARAM = "fromId";
+	public static final String INVITED_ANSWER_USER_PARAM = "userId";
+	public static final String INVITED_ANSWER_TYPEMEDIA_PARAM = "typeOfMedia";
+	public static final String INVITED_ANSWER_TYPEANSWER_PARAM = "answerType";
+
 /*
 	用户AAA发来的信息
 	typeOfMedia：[audio/media/video]
-	typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":voip}",如果是单人通话就不带session
+	typeOfSession :"{"type":room,"session":"AA"}",或 "{"type":one2one}",如果是单人通话就不带session
 	{
 	"id":1,
 		"method":"invited",
@@ -210,9 +223,9 @@ public class ProtocolElements {
 			"number": 4,
 			"targets":[{"userId":"egrgreara"},{"userId":"sgsgdg"},{"userId":"gfhdhtrhr"},{"userId":"sfsdfdsfsdf"}]
 
-	},
+			},
 	"jsonrpc":"2.0"
-
+	}
 	发送消息到target_0
 	{
 		"method":"onInvited",
@@ -239,5 +252,18 @@ public class ProtocolElements {
 		"id":1,
 		"jsonrpc":"2.0"
 	}
+	//invitedAnswer
+	{
+	"id":1,
+		"method":"invitedAnswer",
+		"params":{
+			"fromId":"邀请发起者ID"
+			"userId": "回复者的userId",
+			"typeOfMedia": “all”,(如果是拒绝的话则忽略)
+			"answerType": {"accept":"accept/or refuse","reason":"busy"}
+			},
+	"jsonrpc":"2.0"
+	}
+
 	 */
 }
