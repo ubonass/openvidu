@@ -71,7 +71,13 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
 
     @Override
     public void handleRequest(Transaction transaction, Request<JsonObject> request) throws Exception {
-        super.handleRequest(transaction,request);
+        super.handleRequest(transaction, request);
+        if (request.getMethod()
+                .equals(ProtocolElements.KEEPLIVE_METHOD) ||
+                request.getMethod()
+                        .equals(ProtocolElements.INVITED_METHOD) ||
+                request.getMethod()
+                        .equals(ProtocolElements.ONINVITED_METHOD)) return;
         RpcConnection rpcConnection =
                 notificationService.getRpcConnection(transaction.getSession().getSessionId());
         if (rpcConnection == null) {
@@ -149,7 +155,7 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
                 break;
         }
     }
-    
+
     public void joinRoom(RpcConnection rpcConnection, Request<JsonObject> request) {
 
         String sessionId = getStringParam(request, ProtocolElements.JOINROOM_ROOM_PARAM);
@@ -590,7 +596,7 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
 
     @Override
     public void afterConnectionClosed(Session rpcSession, String status) throws Exception {
-        super.afterConnectionClosed(rpcSession,status);
+        super.afterConnectionClosed(rpcSession, status);
         log.info("After connection closed for WebSocket session: {} - Status: {}", rpcSession.getSessionId(), status);
 
         String rpcSessionId = rpcSession.getSessionId();
