@@ -269,7 +269,8 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
     private void leaveRoom(RpcConnection rpcConnection, Request<JsonObject> request) {
         Participant participant;
         try {
-            participant = sanityCheckOfSession(rpcConnection, "disconnect");
+            //modify by jeffrey
+            participant = sanityCheckOfSession(rpcConnection,"leaveRoom" /*"disconnect"*/);
         } catch (OpenViduException e) {
             return;
         }
