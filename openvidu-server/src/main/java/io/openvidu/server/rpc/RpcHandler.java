@@ -273,8 +273,11 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
         } catch (OpenViduException e) {
             return;
         }
+        /**
+         * 如果该房间没有人应该清除该session
+         */
         //modify by jeffrey,cannt close the websocket.
-        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, /*true*/ false);
+        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, /*true*/ true);
         log.info("Participant {} has left session {}", participant.getParticipantPublicId(),
                 rpcConnection.getSessionId());
     }
