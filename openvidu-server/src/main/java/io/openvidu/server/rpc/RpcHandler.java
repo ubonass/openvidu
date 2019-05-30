@@ -277,7 +277,8 @@ public class RpcHandler extends VoipHandler/*DefaultJsonRpcHandler<JsonObject>*/
          * 如果该房间没有人应该清除该session
          */
         //modify by jeffrey,cannt close the websocket.
-        sessionManager.leaveRoom(participant, request.getId(), EndReason.disconnect, /*true*/ true);
+        sessionManager.leaveRoom(participant, request.getId(), /*EndReason.disconnect*/EndReason.leaveRoom,
+                /*true*/ false);
         log.info("Participant {} has left session {}", participant.getParticipantPublicId(),
                 rpcConnection.getSessionId());
     }

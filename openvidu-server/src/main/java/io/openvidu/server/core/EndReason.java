@@ -21,6 +21,7 @@ public enum EndReason {
 
     unsubscribe,
     unpublish,
+    leaveRoom,//add by jeffrey
     disconnect,
     forceUnpublishByUser,
     forceUnpublishByServer,
