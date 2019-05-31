@@ -38,7 +38,8 @@ public class VoipHandler extends DefaultJsonRpcHandler<JsonObject> {
                 getParticipantPrivateIdByTransaction(transaction);
         log.info("WebSocket session #{} - Request: {}", participantPrivateId, request);
         RpcConnection rpcConnection;
-        if (ProtocolElements.KEEPLIVE_METHOD.equals(request.getMethod())) {
+        if (ProtocolElements.KEEPLIVE_METHOD.equals(request.getMethod()) ||
+                ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
             // Store new RpcConnection information if method 'keepLive'
             rpcConnection = notificationService.newRpcConnection(transaction, request);
         } else if (notificationService.getRpcConnection(participantPrivateId) == null) {
