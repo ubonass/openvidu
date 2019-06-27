@@ -538,7 +538,7 @@ exports.WebRtcPeerSendrecv = WebRtcPeerSendrecv;
 exports.hark = harkUtils;
 },{"events":4,"freeice":5,"hark":8,"inherits":9,"kurento-browser-extensions":10,"merge":11,"sdp-translator":18,"ua-parser-js":21,"uuid":23}],2:[function(require,module,exports){
 if (window.addEventListener)
-    module.exports = require('./index_js');
+    module.exports = require('./index');
 },{"./index":3}],3:[function(require,module,exports){
 var WebRtcPeer = require('./WebRtcPeer');
 exports.WebRtcPeer = WebRtcPeer;
@@ -2304,7 +2304,7 @@ Interop.prototype.toUnifiedPlan = function(desc) {
     // convert to Plan B prior to handing it over to the application (the
     // PeerConnection wrapper called us, for instance, after a successful
     // createAnswer), we want to remember the m-line at which we've seen the
-    // (local) SSRC. That's because when the application wants to do cluster the
+    // (local) SSRC. That's because when the application wants to do call the
     // SLD method, forcing us to do the inverse transformation (from Plan B to
     // Unified Plan), we need to know to which m-line to assign the (local)
     // SSRC. We also need to know all the other m-lines that the original
@@ -3034,7 +3034,7 @@ exports.parse = function(sdp) {
                                 } else if (q.length == 3) {
                                     // check whether function or regex
                                     if (typeof q[1] === FUNC_TYPE && !(q[1].exec && q[1].test)) {
-                                        // cluster function (usually string mapper)
+                                        // call function (usually string mapper)
                                         this[q[0]] = match ? q[1].call(this, match, q[2]) : undefined;
                                     } else {
                                         // sanitize match using given regex
