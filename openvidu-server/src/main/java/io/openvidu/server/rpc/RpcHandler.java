@@ -86,7 +86,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
         log.debug("WebSocket session #{} - Request: {}", participantPrivateId, request);
 
-        RpcConnection rpcConnection;
+        /*RpcConnection rpcConnection;
         if (ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
             // Store new RpcConnection information if method 'joinRoom'
             rpcConnection = notificationService.newRpcConnection(transaction, request);
@@ -98,10 +98,10 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             throw new OpenViduException(Code.TRANSPORT_ERROR_CODE,
                     "No connection found for participant with privateId " + participantPrivateId
                             + ". Method 'Session.connect()' must be the first operation called in any session");
-        }
-        rpcConnection = notificationService.addTransaction(transaction, request);
-
-        String sessionId = rpcConnection.getSessionId();
+        }*/
+        RpcConnection rpcConnection = notificationService.addTransaction(transaction, request);
+        if (rpcConnection == null) return;
+        /*String sessionId = rpcConnection.getSessionId();
         if (sessionId == null && !ProtocolElements.JOINROOM_METHOD.equals(request.getMethod())) {
             log.warn(
                     "No session information found for participant with privateId {} when trying to execute method '{}'. Method 'Session.connect()' must be the first operation called in any session",
@@ -109,7 +109,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             throw new OpenViduException(Code.TRANSPORT_ERROR_CODE,
                     "No session information found for participant with privateId " + participantPrivateId
                             + ". Method 'Session.connect()' must be the first operation called in any session");
-        }
+        }*/
 
         transaction.startAsync();
 
@@ -177,7 +177,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
         notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
                 request.getId(), result);
     }
-    
+
     public void joinRoom(RpcConnection rpcConnection, Request<JsonObject> request) {
 
         String sessionId = getStringParam(request, ProtocolElements.JOINROOM_ROOM_PARAM);
