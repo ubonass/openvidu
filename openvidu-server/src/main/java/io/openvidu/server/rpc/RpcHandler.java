@@ -20,6 +20,7 @@ package io.openvidu.server.rpc;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.*;
+import io.openvidu.java.client.*;
+import io.openvidu.server.core.*;
+import io.openvidu.server.kurento.core.KurentoTokenOptions;
 import org.kurento.jsonrpc.DefaultJsonRpcHandler;
 import org.kurento.jsonrpc.Session;
 import org.kurento.jsonrpc.Transaction;
@@ -37,20 +42,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-
 import io.openvidu.client.OpenViduException;
 import io.openvidu.client.OpenViduException.Code;
 import io.openvidu.client.internal.ProtocolElements;
 import io.openvidu.server.config.OpenviduConfig;
-import io.openvidu.server.core.EndReason;
-import io.openvidu.server.core.MediaOptions;
-import io.openvidu.server.core.Participant;
-import io.openvidu.server.core.SessionManager;
-import io.openvidu.server.core.Token;
 import io.openvidu.server.utils.GeoLocation;
 import io.openvidu.server.utils.GeoLocationByIp;
 import io.openvidu.server.utils.RandomStringGenerator;
@@ -70,6 +65,9 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
     @Autowired
     RpcNotificationService notificationService;
+
+    @Autowired
+    TokenGenerator tokenGenerator;//add by jeffrey
 
     private ConcurrentMap<String, Boolean> webSocketEOFTransportError = new ConcurrentHashMap<>();
 
@@ -117,12 +115,12 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             case ProtocolElements.KEEPLIVE_METHOD:
                 keepLive(rpcConnection, request);
                 break;
-            /*case ProtocolElements.CALL_METHOD:
+            case ProtocolElements.CALL_METHOD:
                 call(rpcConnection, request);
                 break;
             case ProtocolElements.ONCALL_METHOD:
                 onCall(rpcConnection, request);
-                break;*/
+                break;
             case ProtocolElements.JOINROOM_METHOD:
                 joinRoom(rpcConnection, request);
                 break;
@@ -182,6 +180,151 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
         result.addProperty(ProtocolElements.KEEPLIVE_METHOD, "OK");
         notificationService.sendResponse(rpcConnection.getParticipantPrivateId(),
                 request.getId(), result);
+    }
+
+
+    private void call(RpcConnection rpcConnection, Request<JsonObject> request) {
+        String calleeId = getStringParam(request, ProtocolElements.CALL_CALLEE_PARAM);
+        //String clientId = getStringParam(request, ProtocolElements.CALL_FROMUSER_PARAM);
+        JsonObject result = new JsonObject();
+        /**
+         * 如果callee不存在
+         */
+        if (notificationService.getRpcConnectionByParticipantPublicId(calleeId) == null) {
+            result.addProperty("method", ProtocolElements.CALL_METHOD);
+            result.addProperty(ProtocolElements.CALL_RESPONSE_PARAM,
+                    "rejected: user '" + calleeId + "' is not registered");
+            log.info("rejected send incoming cluster to {} user,reason its not registered", calleeId);
+            notificationService.sendResponse(
+                    rpcConnection.getParticipantPrivateId(), request.getId(), result);
+            return;
+        }
+
+        SessionProperties sessionProperties =
+                new SessionProperties.Builder()
+                        .recordingMode(RecordingMode.MANUAL)
+                        .defaultOutputMode(Recording.OutputMode.COMPOSED)
+                        .defaultRecordingLayout(RecordingLayout.BEST_FIT)
+                        .mediaMode(MediaMode.ROUTED).build();
+        /**
+         * 手动创建sessionId,同时为sessionId进行配置
+         */
+        String sessionId = RandomStringGenerator.generateRandomChain();
+        rpcConnection.setSessionId(sessionId);
+
+        sessionManager.storeSessionNotActive(sessionId, sessionProperties);
+
+        Participant participant = sessionManager.newCallParticipant(sessionId,
+                rpcConnection.getParticipantPrivateId(), rpcConnection.getParticipantPublicId());
+
+        //加入房间
+        sessionManager.joinRoom(participant, sessionId, request.getId());
+        /**
+         * 发布视频到session
+         */
+        try {
+            participant = sanityCheckOfSession(rpcConnection, "publish");
+        } catch (OpenViduException e) {
+            return;
+        }
+        /**
+         * 获取媒体参数使用默认的
+         */
+        MediaOptions options = sessionManager.generateMediaOptions(request);
+        /**
+         * 已经在sessionId中发布了视频
+         */
+        sessionManager.call(participant, calleeId, options, request.getId());
+    }
+
+    private void onCall(RpcConnection rpcConnection, Request<JsonObject> request) {
+        String event = getStringParam(request, ProtocolElements.ONCALL_EVENT_PARAM);
+        switch (event) {
+            case ProtocolElements.ONCALL_EVENT_ACCEPT:
+                onCallAcceptProcess(rpcConnection, request);
+                break;
+            case ProtocolElements.ONCALL_EVENT_REJECT:
+                onCallRejectProcess(rpcConnection, request);
+                break;
+            case ProtocolElements.ONCALL_EVENT_HANGUP:
+                onCallHangupProcess(rpcConnection, request);
+                break;
+        }
+    }
+
+    private void onCallAcceptProcess(RpcConnection rpcConnection, Request<JsonObject> request) {
+        if (!getStringParam(request, ProtocolElements.ONCALL_EVENT_PARAM)
+                .equals(ProtocolElements.ONCALL_EVENT_ACCEPT) ||
+                !request.getParams().has(ProtocolElements.ONCALL_CALLER_PARAM)) return;
+
+        String callerId = getStringParam(request, ProtocolElements.ONCALL_CALLER_PARAM);
+        String sessionId = getStringParam(request, ProtocolElements.ONCALL_SESSION_PARAM);
+
+        rpcConnection.setSessionId(sessionId);
+
+        Participant participant = sessionManager.newCallParticipant(sessionId,
+                rpcConnection.getParticipantPrivateId(), rpcConnection.getParticipantPublicId());
+
+        //加入房间
+        sessionManager.joinRoom(participant, sessionId, request.getId());
+        /**
+         * 发布视频到session
+         */
+        try {
+            participant = sanityCheckOfSession(rpcConnection, "publish");
+        } catch (OpenViduException e) {
+            return;
+        }
+        /**
+         * 获取媒体参数
+         */
+        MediaOptions options = sessionManager.generateMediaOptions(request);
+
+        sessionManager.onCallAccept(participant, callerId, options, request.getId());
+
+        JsonObject accetpObject = new JsonObject();
+
+        /*告知calleer对方已经接听*/
+        accetpObject.addProperty(ProtocolElements.ONCALL_CALLER_PARAM, callerId);
+        accetpObject.addProperty(ProtocolElements.ONCALL_CALLEE_PARAM, rpcConnection.getParticipantPublicId());
+        accetpObject.addProperty(ProtocolElements.ONCALL_EVENT_PARAM, ProtocolElements.ONCALL_EVENT_ACCEPT);
+        notificationService.sendNotificationByParticipantPublicId(callerId, ProtocolElements.ONCALL_METHOD, accetpObject);
+    }
+
+    private void onCallRejectProcess(RpcConnection rpcConnection,
+                                     Request<JsonObject> request) {
+        /*if (!getStringParam(request, ProtocolElements.ONCALL_EVENT_PARAM)
+                .equals(ProtocolElements.ONCALL_EVENT_REJECT)) return;
+        String callerId = getStringParam(request, ProtocolElements.ONCALL_CALLER_PARAM);
+        String sessionId = getStringParam(request, ProtocolElements.ONCALL_SESSION_PARAM);
+
+        sessionManager.onCallReject(sessionId, callerId, request.getId());
+
+        JsonObject rejectObject = new JsonObject();
+        if (request.getParams().has(ProtocolElements.ONCALL_EVENT_REJECT_REASON)) {
+            rejectObject.addProperty(ProtocolElements.ONCALL_EVENT_REJECT_REASON, getStringParam(request,
+                    ProtocolElements.ONCALL_EVENT_REJECT_REASON));
+        }
+        rejectObject.addProperty(ProtocolElements.ONCALL_EVENT_PARAM, ProtocolElements.ONCALL_EVENT_REJECT);
+
+        notificationService.sendNotificationByPublicId(
+                callerId, ProtocolElements.ONCALL_METHOD, rejectObject);*/
+    }
+
+    private void onCallHangupProcess(RpcConnection rpcConnection,
+                                     Request<JsonObject> request) {
+        /*if (!getStringParam(request, ProtocolElements.ONCALL_EVENT_PARAM)
+                .equals(ProtocolElements.ONCALL_EVENT_HANGUP)) return;
+
+        Participant participant;
+        try {
+            participant = sanityCheckOfSession(rpcConnection, "onCallHangup");
+        } catch (CloudMediaException e) {
+            return;
+        }
+        sessionManager.onCallHangup(participant, request.getId());
+        logger.info("Participant {} has left session {}", participant.getParticipantPublicId(),
+                rpcConnection.getSessionId());*/
     }
 
     public void joinRoom(RpcConnection rpcConnection, Request<JsonObject> request) {
@@ -267,7 +410,8 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
                     participant = sessionManager.newRecorderParticipant(sessionId, participantPrivatetId, tokenObj,
                             clientMetadata);
                 } else {
-                    participant = sessionManager.newParticipant(sessionId, participantPrivatetId, tokenObj,
+                    participant = sessionManager.newParticipant(sessionId, participantPrivatetId,
+                            rpcConnection.getParticipantPublicId(), tokenObj,
                             clientMetadata, location, platform,
                             httpSession.getId().substring(0, Math.min(16, httpSession.getId().length())));
                 }

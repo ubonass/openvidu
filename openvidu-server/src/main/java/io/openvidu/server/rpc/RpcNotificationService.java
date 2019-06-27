@@ -116,11 +116,24 @@ public class RpcNotificationService {
         Session s = rpcSession.getSession();
 
         try {
-            s.sendNotification(method, params);
+            if (params != null)
+                s.sendNotification(method, params);
+            else
+                s.sendNotification(method);
         } catch (Exception e) {
             log.error("Exception sending notification '{}': {} to participant with private id {}", method, params,
                     participantPrivateId, e);
         }
+    }
+
+    public void sendNotificationByParticipantPublicId(final String participantPublicId, final String method, final Object params) {
+        RpcConnection rpcSession = pubConnections.get(participantPublicId);
+        if (rpcSession == null || rpcSession.getSession() == null) {
+            log.error("No rpc session found for public id {}, unable to send notification {}: {}",
+                    participantPublicId, method, params);
+            return;
+        }
+        this.sendNotification(rpcSession.getParticipantPrivateId(), method, params);
     }
 
     public RpcConnection closeRpcSession(String participantPrivateId) {

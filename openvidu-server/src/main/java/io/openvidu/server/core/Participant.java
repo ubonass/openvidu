@@ -33,14 +33,14 @@ public class Participant {
 	protected Token token; // Token associated to this participant
 	protected GeoLocation location; // Location of the participant
 	protected String platform; // Platform used by the participant to connect to the session
-
+	protected boolean useCall = false;
 	protected boolean streaming = false;
 	protected volatile boolean closed;
 
 	private final String METADATA_SEPARATOR = "%/%";
 
 	public Participant(String finalUserId, String participantPrivatetId, String participantPublicId, String sessionId,
-			Token token, String clientMetadata, GeoLocation location, String platform, Long createdAt) {
+						Token token, String clientMetadata, GeoLocation location, String platform, Long createdAt) {
 		this.finalUserId = finalUserId;
 		this.participantPrivatetId = participantPrivatetId;
 		this.participantPublicId = participantPublicId;
@@ -52,10 +52,20 @@ public class Participant {
 		}
 		this.token = token;
 		this.clientMetadata = clientMetadata;
-		if (!token.getServerMetadata().isEmpty())
+		//modify by jeffrey
+		if (token != null && token.getServerMetadata() != null &&
+				!token.getServerMetadata().isEmpty())
 			this.serverMetadata = token.getServerMetadata();
 		this.location = location;
 		this.platform = platform;
+	}
+
+	public void setUseCall(boolean useCall) {
+		this.useCall = useCall;
+	}
+
+	public boolean getUseCall() {
+		return useCall;
 	}
 
 	public String getFinalUserId() {

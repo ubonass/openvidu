@@ -86,10 +86,12 @@ public class KurentoParticipant extends Participant {
 			this.publisher = new PublisherEndpoint(webParticipant, this, participant.getParticipantPublicId(),
 					this.session.getPipeline(), this.openviduConfig);
 		}
-
-		for (Participant other : session.getParticipants()) {
-			if (!other.getParticipantPublicId().equals(this.getParticipantPublicId())) {
-				getNewOrExistingSubscriber(other.getParticipantPublicId());
+		//modify by jeffrey...
+		if (!participant.getUseCall()) {
+			for (Participant other : session.getParticipants()) {
+				if (!other.getParticipantPublicId().equals(this.getParticipantPublicId())) {
+					getNewOrExistingSubscriber(other.getParticipantPublicId());
+				}
 			}
 		}
 	}
