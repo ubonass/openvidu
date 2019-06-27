@@ -39,11 +39,18 @@ public class RpcNotificationService {
      */
     private ConcurrentMap<String, RpcConnection> rpcConnections = new ConcurrentHashMap<>();
 
+    /**
+     * 公有ID
+     */
+    private ConcurrentMap<String, RpcConnection> pubConnections = new ConcurrentHashMap<>();
+
     public RpcConnection newRpcConnection(String participantPublicId, Session session) {
         if (session == null || participantPublicId == null) return null;
         RpcConnection connection = new RpcConnection(participantPublicId, session);
         RpcConnection oldConnection =
                 rpcConnections.putIfAbsent(connection.getParticipantPrivateId(), connection);
+        //add by jeffrey
+        pubConnections.putIfAbsent(participantPublicId, connection);
         if (oldConnection != null) {
             log.warn("Concurrent initialization of rpcSession #{}", connection.getSessionId());
             connection = oldConnection;
@@ -122,6 +129,7 @@ public class RpcNotificationService {
             log.error("No session found for private id {}, unable to cleanup", participantPrivateId);
             return null;
         }
+        pubConnections.remove(rpcSession.getParticipantPublicId());//add by jeffrey
         Session s = rpcSession.getSession();
         try {
             s.close();
@@ -152,6 +160,12 @@ public class RpcNotificationService {
 
     public RpcConnection getRpcConnection(String participantPrivateId) {
         return this.rpcConnections.get(participantPrivateId);
+    }
+
+    public RpcConnection getRpcConnectionByParticipantPublicId(String participantPublicId) {
+        if (pubConnections.containsKey(participantPublicId))
+            return this.pubConnections.get(participantPublicId);
+        else return null;
     }
 
 }

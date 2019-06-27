@@ -117,6 +117,12 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
             case ProtocolElements.KEEPLIVE_METHOD:
                 keepLive(rpcConnection, request);
                 break;
+            /*case ProtocolElements.CALL_METHOD:
+                call(rpcConnection, request);
+                break;
+            case ProtocolElements.ONCALL_METHOD:
+                onCall(rpcConnection, request);
+                break;*/
             case ProtocolElements.JOINROOM_METHOD:
                 joinRoom(rpcConnection, request);
                 break;

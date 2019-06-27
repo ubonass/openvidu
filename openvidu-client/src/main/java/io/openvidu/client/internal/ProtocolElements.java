@@ -182,4 +182,40 @@ public class ProtocolElements {
 	public static final String CUSTOM_NOTIFICATION = "custonNotification";
 
 	public static final String RECORDER_PARTICIPANT_PUBLICID = "RECORDER";
+
+
+	public static final String CALL_METHOD = "call";//去电由A发给服务端的请求
+	public static final String CALL_CALLER_PARAM = "callerId";//
+	public static final String CALL_CALLEE_PARAM = "calleeId";
+	public static final String CALL_MEDIA_PARAM = "media";//
+	public static final String CALL_SDPOFFER_PARAM = "sdpOffer";//
+	public static final String CALL_SDPANSWER_PARAM = "sdpAnswer";//
+	public static final String CALL_RESPONSE_PARAM = "response";//服务器回复A,OK表示呼叫成功
+
+
+	/**
+	 * 服务器->B的来电通知
+	 */
+	public static final String INCOMINGCALL_METHOD = "incomingCall";//来电请求,由服务器发送给用户B
+	public static final String INCOMINGCALL_CALLER_PARAM = "callerId";//
+	//public static final String INCOMINGCALL_TARGETUSER_PARAM = "targetId";
+	public static final String INCOMINGCALL_SESSION_PARAM = "sessionName";//有服务器随机生成
+	public static final String INCOMINGCALL_MEDIA_PARAM = "media";//video or audio or all,default all
+
+	/**
+	 * B->服务器的应答回复,该事件为双向事件
+	 */
+	public static final String ONCALL_METHOD = "onCall";
+	public static final String ONCALL_CALLER_PARAM = "callerId";//谁是发起者,和call中的fromId一至
+	public static final String ONCALL_CALLEE_PARAM = "calleeId";
+	public static final String ONCALL_SDPOFFER_PARAM = "sdpOffer";
+	public static final String ONCALL_SDPANSWER_PARAM = "sdpAnswer";//这是服务器回复给发起者的
+	public static final String ONCALL_SESSION_PARAM = "sessionName";//有服务器随机生成
+	public static final String ONCALL_MEDIA_PARAM = "media";//
+	public static final String ONCALL_EVENT_PARAM = "event";
+	public static final String ONCALL_EVENT_ACCEPT = "accept";//接听
+	public static final String ONCALL_EVENT_REJECT = "reject";//对方拒接
+	public static final String ONCALL_EVENT_REJECT_REASON = "reason";//拒接原因
+	public static final String ONCALL_EVENT_HANGUP = "hangup";//对方挂断
+	public static final String ONCALL_EVENT_CONNECTED = "connected";//已经建立通话
 }
