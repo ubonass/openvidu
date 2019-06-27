@@ -41,11 +41,17 @@ public class RpcConnection {
 	private ConcurrentMap<Integer, Transaction> transactions;
 	private String sessionId;
 	private String participantPrivateId;
+	private String participantPublicId;//当前客户端的客户唯一标识码
 
 	public RpcConnection(Session session) {
 		this.session = session;
 		this.transactions = new ConcurrentHashMap<>();
 		this.participantPrivateId = session.getSessionId();
+	}
+
+	public RpcConnection(String participantPublicId,Session session) {
+		this(session);
+		this.participantPublicId = participantPublicId;
 	}
 
 	public Session getSession() {
@@ -54,6 +60,10 @@ public class RpcConnection {
 
 	public String getParticipantPrivateId() {
 		return participantPrivateId;
+	}
+
+	public String getParticipantPublicId() {
+		return participantPublicId;
 	}
 
 	public void setParticipantPrivateId(String participantPrivateId) {

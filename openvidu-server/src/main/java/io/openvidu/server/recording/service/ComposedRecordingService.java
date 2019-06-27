@@ -455,6 +455,7 @@ public class ComposedRecordingService extends RecordingService {
 			finalUrl = (startsWithHttp ? "http" : "https") + "://OPENVIDUAPP:" + secret + "@" + recordingUrl
 					+ "/#/layout-" + layout + "/" + shortSessionId + "/" + secret + "/" + port + "/"
 					+ !recording.hasAudio();
+			//https://OPENVIDUAPP:MYSECRET@ubonass.com:443/#layout-BEST_FIT
 		}
 
 		return finalUrl;
