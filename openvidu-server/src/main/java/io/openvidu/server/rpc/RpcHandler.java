@@ -264,7 +264,7 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 
         Participant participant = sessionManager.newCallParticipant(sessionId,
                 rpcConnection.getParticipantPrivateId(), rpcConnection.getParticipantPublicId());
-
+        log.info("-----------------------------");
         //加入房间
         sessionManager.joinRoom(participant, sessionId, request.getId());
         /**
